@@ -1,0 +1,20 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int     @id @default(autoincrement())
+  firstName String
+  lastName  String
+  plant     String
+  email     String  @unique
+  phone     String
+  createdAt DateTime @default(now())
+}
+
