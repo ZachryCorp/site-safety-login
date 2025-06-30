@@ -30,7 +30,7 @@ const handleSubmit = async (e: React.FormEvent) => {
   }
 
   try {
-    const res = await fetch('http://localhost:5000/api/check-user', {
+    const res = await fetch(`${process.env.REACT_APP_API_URL}/api/check-user`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData),
