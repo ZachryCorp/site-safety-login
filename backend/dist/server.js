@@ -32,9 +32,10 @@ app.post('/api/check-user', async (req, res) => {
     }
     catch (err) {
         console.error(err);
-        return res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error' });
     }
 });
 app.listen(5000, () => {
     console.log('Backend running on http://localhost:5000');
 });
+
