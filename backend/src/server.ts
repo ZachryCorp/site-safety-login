@@ -1,4 +1,5 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
+
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
 
@@ -9,7 +10,8 @@ app.use(cors());
 app.use(express.json());
 
 // API route to check/add user
-app.post('/api/check-user', async (req, res) => {
+app.post('/api/check-user', async (req: Request, res: Response) => {
+
   const { firstName, lastName, plant, email, phone } = req.body;
 
   if (!firstName || !lastName || !plant || !email || !phone) {
@@ -31,7 +33,7 @@ app.post('/api/check-user', async (req, res) => {
     }
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    return res.status(500).json({ message: 'Server error' });
   }
 });
 
