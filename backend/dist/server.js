@@ -32,7 +32,7 @@ app.post('/api/check-user', async (req, res) => {
     }
     catch (err) {
         console.error(err);
-        res.status(500).json({ message: 'Server error' });
+        return res.status(500).json({ message: 'Server error' });
     }
 });
 app.listen(5000, () => {
