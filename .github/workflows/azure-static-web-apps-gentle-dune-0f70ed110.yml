@@ -43,7 +43,7 @@ jobs:
           action: "upload"
           app_location: "/"                # Adjust if your frontend is in a subfolder
           api_location: ""                 # Leave blank unless using Azure Functions
-          output_location: "dist"          # Build output folder (React default)
+          output_location: "build"          # Build output folder (React default)
           github_id_token: ${{ steps.idtoken.outputs.result }}
 
   close_pull_request_job:
