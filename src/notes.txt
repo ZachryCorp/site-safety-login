@@ -1,0 +1,12 @@
+add backend 
+
+
+# In your browser, go to your GitHub repository > Settings > Secrets and variables > Actions
+
+# Click "New repository secret"
+
+# Name: AZURE_WEBAPP_PUBLISH_PROFILE
+
+# Value: (Paste your Azure App Service publish profile XML content here)
+
+# Click "Add secret"

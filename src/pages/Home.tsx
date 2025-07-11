@@ -12,6 +12,8 @@ export default function Home() {
     phone: '',
   });
 
+  // Add more fields here if needed, need who they're visiting idk if its gonna be a dropdown or a text field yet
+
   const [error, setError] = useState('');
 
   const plants = ['Plant A', 'Plant B', 'Plant C']; // Replace with actual plant names

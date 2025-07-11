@@ -10,7 +10,6 @@ const Quiz: React.FC = () => {
   const [correct, setCorrect] = useState(false);
 
   const handleSubmit = async () => {
-    // 👇 Replace with real API call to add new user
     await fetch('/api/create-user', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

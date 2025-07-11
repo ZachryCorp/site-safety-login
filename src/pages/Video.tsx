@@ -16,7 +16,7 @@ const Video: React.FC = () => {
     <div>
       <h2>Training Video</h2>
       <video width="640" height="360" controls>
-        <source src="/training.mp4" type="video/mp4" />
+        <source src="/Capitol Cement Site Specific - Spanish.mp4" type="video/mp4" />
         Your browser does not support the video tag.
       </video>
       <button onClick={handleNext}>Continue to Quiz</button>
