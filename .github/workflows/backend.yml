@@ -1,4 +1,4 @@
-name: Deploy Backend to Azure App Service with OIDC
+name: Deploy Backend to Azure App Service
 
 on:
   push:
@@ -7,14 +7,18 @@ on:
     paths:
       - 'backend/**'
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     name: Build and Deploy Backend
 
-    permissions:
-      id-token: write
-      contents: read
+    defaults:
+      run:
+        working-directory: backend
 
     steps:
       - name: Checkout code
@@ -27,11 +31,9 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-        working-directory: backend
 
       - name: Build project
         run: npm run build
-        working-directory: backend
 
       - name: Azure Login with OIDC
         uses: azure/login@v2
@@ -40,9 +42,9 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Deploy to Azure Web App
+      - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v2
         with:
           app-name: site-safety-login-cqc0f2fnh3h8bsay
           slot-name: production
-          package: backend
+          package: .
