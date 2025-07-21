@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const client_1 = require("@prisma/client");
-const { strict } = require("assert");
 const prisma = new client_1.PrismaClient();
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
@@ -33,10 +32,10 @@ app.post('/api/check-user', async (req, res) => {
     }
     catch (err) {
         console.error(err);
-        res.status(500).json({ message: 'Server error' });
+        return res.status(500).json({ message: 'Server error' });
     }
 });
-app.listen(5000, () => {
-    console.log('Backend running on http://localhost:5000');
+const port = process.env.PORT || 5000;
+app.listen(port, () => {
+    console.log(`Backend running on http://localhost:${port}`);
 });
-
