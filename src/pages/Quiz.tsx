@@ -134,3 +134,4 @@ const Quiz: React.FC = () => {
 };
 
 export default Quiz;
+

@@ -189,4 +189,3 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '0.9rem',
   },
 };
-

@@ -10,3 +10,26 @@ add backend
 # Value: (Paste your Azure App Service publish profile XML content here)
 
 # Click "Add secret"
+
+
+
+
+New Questions to add 
+
+1.	Signing In and Out of mine site is mandatory. True
+2.	Mining equipment always has the right of way; never assume mining equipment can see you. True
+3.	It’s ok to park in blind spots as long as it’s only for a short period of time. False
+4.	Drive according to road conditions and obey all traffic signs. True
+5.	Hard Hat, Safety Glasses, Reflective Clothing and Safety Toe Boots are always required when on mine site. True
+6.	Face shields and guards on a handheld grinder are not required when using a handheld grinder? False
+7.	Fall Protection is required anytime there is a danger of falling. True
+8.	Pre-Shift Inspections and Workplace Examinations must be completed prior to operating equipment or working on task. True
+9.	Park Brakes and Chock Blocks are not required if I get out of my piece of equipment for less than 5 minutes. False
+10.	Implements such as outriggers, buckets, moboard, rippers, excavator boom, must be lowered to the ground before getting out of equipment. True
+
+
+
+Thursday Meeting is the plan as of now
+
+
+go through the folder of Bryan's to find the plants and which plants have a specific video needed for each plant
