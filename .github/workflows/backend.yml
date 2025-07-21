@@ -57,4 +57,4 @@ jobs:
         uses: azure/webapps-deploy@v2
         with:
           app-name: site-safety-login
-          package: ./backend/deploy
+          package: backend/
