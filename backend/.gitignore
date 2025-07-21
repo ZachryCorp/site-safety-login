@@ -1,5 +1,4 @@
 
-node_modules/
-*.ts
-*.tsx
-*.map
+node_modules
+dist
+.env
