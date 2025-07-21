@@ -28,12 +28,25 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      - name: Build project
+      - name: Build TypeScript
         run: npm run build
 
-      - name: Azure Login with OIDC
+      - name: Copy runtime files
+        run: |
+          mkdir deploy
+          cp -r dist deploy/
+          cp package.json package-lock.json deploy/
+        shell: bash
+
+      - name: Install production deps in deploy folder
+        run: |
+          cd deploy
+          npm ci --only=production
+        shell: bash
+
+      - name: Azure Login
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
@@ -44,5 +57,4 @@ jobs:
         uses: azure/webapps-deploy@v2
         with:
           app-name: site-safety-login
-          slot-name: production
-          package: .
+          package: ./backend/deploy

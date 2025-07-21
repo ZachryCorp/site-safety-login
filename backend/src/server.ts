@@ -37,6 +37,8 @@ app.post('/api/check-user', async (req: Request, res: Response) => {
   }
 });
 
-app.listen(5000, () => {
-  console.log('Backend running on http://localhost:5000');
+const port = process.env.PORT || 5000;
+app.listen(port, () => {
+  console.log(`Backend running on http://localhost:${port}`);
 });
+
