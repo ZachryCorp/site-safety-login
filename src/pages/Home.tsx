@@ -16,7 +16,7 @@ export default function Home() {
 
   const [error, setError] = useState('');
 
-  const plants = ['Plant A', 'Plant B', 'Plant C']; // Replace with actual plant names
+  const plants = ['Cement', 'Delta', 'Hoban', 'Poteet', 'Rio Medina', 'Solms']; // Replace with actual plant names
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
