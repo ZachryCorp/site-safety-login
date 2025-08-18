@@ -10,47 +10,49 @@ export default function Home() {
     plant: '',
     email: '',
     phone: '',
+    meetingWith: '', 
   });
-
-  // Add more fields here if needed, need who they're visiting idk if its gonna be a dropdown or a text field yet
 
   const [error, setError] = useState('');
 
-  const plants = ['Cement', 'Delta', 'Hoban', 'Poteet', 'Rio Medina', 'Solms']; // Replace with actual plant names
+  const plants = ['Cement', 'Delta', 'Hoban', 'Poteet', 'Rio Medina', 'Solms'];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  const { firstName, lastName, plant, email, phone } = formData;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const { firstName, lastName, plant, email, phone } = formData;
 
-  if (!firstName || !lastName || !plant || !email || !phone) {
-    setError('All fields are required.');
-    return;
-  }
-
-  try {
-    const res = await fetch(`${process.env.REACT_APP_API_URL}/api/check-user`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData),
-    });
-
-    const data = await res.json();
-
-    if (data.status === 'existing') {
-      navigate('/thank-you');
-    } else {
-      navigate('/video', { state: formData });
+    if (!firstName || !lastName || !plant || !email || !phone) {
+      setError('All fields are required.');
+      return;
     }
-  } catch (err) {
-    console.error(err);
-    setError('Server error. Please try again later.');
-  }
-};
 
+    try {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/check-user`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+      if (data.user?.id) {
+  localStorage.setItem('userId', data.user.id.toString());
+}
+
+
+      if (data.status === 'existing') {
+        navigate('/thank-you');
+      } else {
+        navigate('/video', { state: formData });
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Server error. Please try again later.');
+    }
+  };
 
   return (
     <div style={styles.container}>
@@ -123,12 +125,31 @@ const handleSubmit = async (e: React.FormEvent) => {
             />
           </div>
 
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Who are you here to meet?</label>
+            <input
+              name="meetingWith"
+              type="text"
+              value={formData.meetingWith}
+              onChange={handleChange}
+              style={styles.input}
+            />
+          </div>
+
           {error && <p style={styles.error}>{error}</p>}
 
           <button type="submit" style={styles.button}>
             Continue
           </button>
         </form>
+
+        <button onClick={() => navigate('/admin')} style={styles.adminButton}>
+          Go to Admin Portal
+        </button>
+      <button onClick={() => navigate('/admin')} style={styles.button}>
+          Visitor/Non MSHA Work Area
+        </button>
+
       </div>
     </div>
   );
@@ -183,6 +204,18 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 600,
     cursor: 'pointer',
     marginTop: '1rem',
+  },
+  adminButton: {
+    padding: '0.75rem',
+    border: 'none',
+    borderRadius: 6,
+    backgroundColor: '#28a745',
+    color: '#fff',
+    fontSize: '1rem',
+    fontWeight: 600,
+    cursor: 'pointer',
+    marginTop: '1rem',
+    width: '100%',
   },
   error: {
     color: 'red',
