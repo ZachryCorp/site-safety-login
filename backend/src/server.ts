@@ -8,7 +8,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ✅ Check/add or update user on login
+//  Check/add or update user on login
 app.post('/api/check-user', async (req: Request, res: Response) => {
   const { firstName, lastName, plant, email, phone, meetingWith } = req.body;
 
@@ -52,7 +52,7 @@ app.post('/api/check-user', async (req: Request, res: Response) => {
   }
 });
 
-// ✅ Get currently signed-in users
+//  Get currently signed-in users
 app.get('/api/users', async (_req: Request, res: Response) => {
   try {
     const users = await prisma.user.findMany({
@@ -66,7 +66,7 @@ app.get('/api/users', async (_req: Request, res: Response) => {
   }
 });
 
-// ✅ Sign out by ID (admin panel use)
+// Sign out by ID (admin panel use)
 app.post('/api/signout/:id', async (req: Request, res: Response) => {
   const id = Number(req.params.id);
   if (!id) return res.status(400).json({ message: 'Invalid user ID' });
@@ -83,7 +83,7 @@ app.post('/api/signout/:id', async (req: Request, res: Response) => {
   }
 });
 
-// ✅ Sign out by name (SignOut page use)
+//  Sign out by name (SignOut page use)
 app.post('/api/signout-by-name', async (req: Request, res: Response) => {
   const { firstName, lastName } = req.body;
   if (!firstName || !lastName) {

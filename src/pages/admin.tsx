@@ -29,9 +29,9 @@ const Admin: React.FC = () => {
       await fetch(`${process.env.REACT_APP_API_URL}/api/signout/${id}`, {
         method: 'POST',
       });
-      // Update UI to reflect sign-out
+      
       setUsers((prev) =>
-        prev.filter((u) => u.id !== id) // remove user from list after sign out
+        prev.filter((u) => u.id !== id) 
       );
     } catch (err) {
       console.error('Error signing out user', err);
