@@ -1,3 +1,4 @@
+// src/pages/Video.tsx
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -11,20 +12,44 @@ const Video: React.FC = () => {
     navigate('/quiz', { state: { firstName, lastName, plant } });
   };
 
+  // Map plants to their specific video files
+  const getVideoSource = (plantName: string) => {
+    switch (plantName) {
+      case 'Poteet':
+        return '/Poteet Site Specific.mp4';
+      case 'Hoban':
+        return '/Hoban SIte Specific Hazard Training Video 2019.mp4';
+      case 'Rio Medina':
+        return '/Rio Medina Site Specific 6.-8-2019.mp4';
+      case 'Solms':
+        return '/Solms Site Specific(2).mp4';
+      case 'Cement':
+      case 'Delta':
+      default:
+        // Default video for Cement, Delta, or any other plants
+        return '/Capitol Cement Site Specific - Spanish.mp4';
+    }
+  };
+
+  const videoSource = getVideoSource(plant);
+  const videoTitle = plant ? `${plant} Site Specific Training` : 'Site Specific Training';
+
   return (
     <div style={styles.container}>
-      <div style={styles.card}>
-        <h2 style={styles.title}>Training Video</h2>
-        <video
-          width="100%"
-          height="auto"
-          autoPlay
-          controls
-          style={styles.video}
-        >
-          <source src="/Delta Site Specific 2019.mp4" type="video/mp4" />
-          Your browser does not support the video tag.
-        </video>
+      <div style={styles.content}>
+        <h2 style={styles.title}>{videoTitle}</h2>
+        <div style={styles.videoContainer}>
+          <video 
+            width="800" 
+            height="450" 
+            controls 
+            style={styles.video}
+            key={videoSource} // Force re-render when video source changes
+          >
+            <source src={videoSource} type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+        </div>
         <button onClick={handleNext} style={styles.button}>
           Continue to Quiz
         </button>
@@ -33,44 +58,49 @@ const Video: React.FC = () => {
   );
 };
 
-export default Video;
-
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
     display: 'flex',
     justifyContent: 'center',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     minHeight: '100vh',
-    padding: '2rem',
     backgroundColor: '#f4f4f4',
+    padding: '2rem',
   },
-  card: {
+  content: {
     backgroundColor: '#fff',
     padding: '2rem',
     borderRadius: 12,
     boxShadow: '0 0 10px rgba(0,0,0,0.1)',
-    maxWidth: 800,
-    width: '100%',
     textAlign: 'center',
+    maxWidth: '900px',
+    width: '100%',
   },
   title: {
     marginBottom: '1.5rem',
-    fontSize: '1.5rem',
-    fontWeight: 600,
+    color: '#333',
+  },
+  videoContainer: {
+    marginBottom: '2rem',
+    display: 'flex',
+    justifyContent: 'center',
   },
   video: {
     maxWidth: '100%',
+    height: 'auto',
     borderRadius: 8,
-    marginBottom: '2rem',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
   },
   button: {
-    padding: '0.75rem 1.5rem',
-    fontSize: '1rem',
-    backgroundColor: '#007bff',
-    color: '#fff',
+    padding: '0.75rem 2rem',
     border: 'none',
     borderRadius: 6,
+    backgroundColor: '#007bff',
+    color: '#fff',
+    fontSize: '1rem',
     fontWeight: 600,
     cursor: 'pointer',
   },
 };
+
+export default Video;
