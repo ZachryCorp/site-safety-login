@@ -23,11 +23,12 @@ const Video: React.FC = () => {
         return '/Rio Medina Site Specific 6.-8-2019.mp4';
       case 'Solms':
         return '/Solms Site Specific(2).mp4';
-      case 'Cement':
       case 'Delta':
+        return '/Delta Site Specific 2019.mp4';
+      case 'Cement':
       default:
-        // Default video for Cement, Delta, or any other plants
-        return '/Capitol Cement Site Specific - Spanish.mp4';
+        // Default video for Cement or any other plants
+        return '/Delta Site Specific 2019.mp4'; // Using Delta as default since Capitol Cement file not found
     }
   };
 
