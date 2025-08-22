@@ -14,9 +14,6 @@ permissions:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
 
     steps:
       - name: Checkout code
@@ -28,23 +25,33 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
+        working-directory: backend
         run: npm ci
 
+      - name: Generate Prisma Client
+        working-directory: backend
+        run: npx prisma generate
+
       - name: Build TypeScript
+        working-directory: backend
         run: npm run build
 
-      - name: Copy runtime files
+      - name: Create deployment package
+        working-directory: backend
         run: |
-          mkdir deploy
-          cp -r dist deploy/
+          mkdir -p deploy
+          cp -r dist/* deploy/
           cp package.json package-lock.json deploy/
-        shell: bash
+          cp -r prisma deploy/
+          # Copy generated Prisma client
+          mkdir -p deploy/node_modules/.prisma
+          cp -r node_modules/.prisma/* deploy/node_modules/.prisma/ || true
 
-      - name: Install production deps in deploy folder
+      - name: Install production dependencies
+        working-directory: backend/deploy
         run: |
-          cd deploy
           npm ci --only=production
-        shell: bash
+          npx prisma generate
 
       - name: Azure Login
         uses: azure/login@v2
@@ -57,4 +64,4 @@ jobs:
         uses: azure/webapps-deploy@v2
         with:
           app-name: site-safety-login
-          package: backend/
+          package: backend/deploy
