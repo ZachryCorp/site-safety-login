@@ -85,6 +85,29 @@ export default function Home() {
     }
   };
 
+  const handleDirectSignIn = async () => {
+    const { firstName, lastName, plant, email, phone, meetingWith } = formData;
+
+    if (!firstName || !lastName || !plant || !email || !phone) {
+      setError('All fields are required for sign-in.');
+      return;
+    }
+
+    try {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/check-user`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+      navigate('/thank-you');
+    } catch (err) {
+      console.error(err);
+      setError('Server error. Please try again later.');
+    }
+  };
+
   return (
     <div style={styles.container}>
       <div style={styles.card}>
@@ -180,6 +203,10 @@ export default function Home() {
           </button>
         </form>
 
+        <button onClick={handleDirectSignIn} style={styles.directSignInButton}>
+          Sign In (Skip Training)
+        </button>
+
         <button onClick={() => navigate('/admin')} style={styles.adminButton}>
           Go to Admin Portal
         </button>
@@ -244,6 +271,18 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: 6,
     backgroundColor: '#28a745',
     color: '#fff',
+    fontSize: '1rem',
+    fontWeight: 600,
+    cursor: 'pointer',
+    marginTop: '1rem',
+    width: '100%',
+  },
+  directSignInButton: {
+    padding: '0.75rem',
+    border: 'none',
+    borderRadius: 6,
+    backgroundColor: '#ffc107',
+    color: '#000',
     fontSize: '1rem',
     fontWeight: 600,
     cursor: 'pointer',
