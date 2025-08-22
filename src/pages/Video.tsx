@@ -12,23 +12,23 @@ const Video: React.FC = () => {
     navigate('/quiz', { state: { firstName, lastName, plant } });
   };
 
-  // Map plants to their specific video files
+  // Map plants to their specific video files from Azure Blob Storage
   const getVideoSource = (plantName: string) => {
+    const baseUrl = 'https://sitesafetyvideos.blob.core.windows.net/training-videos';
     switch (plantName) {
       case 'Poteet':
-        return '/Poteet Site Specific.mp4';
+        return `${baseUrl}/Poteet Site Specific.mp4`;
       case 'Hoban':
-        return '/Hoban SIte Specific Hazard Training Video 2019.mp4';
+        return `${baseUrl}/Hoban SIte Specific Hazard Training Video 2019.mp4`;
       case 'Rio Medina':
-        return '/Rio Medina Site Specific 6.-8-2019.mp4';
+        return `${baseUrl}/Rio Medina Site Specific 6.-8-2019.mp4`;
       case 'Solms':
-        return '/Solms Site Specific(2).mp4';
+        return `${baseUrl}/Solms Site Specific(2).mp4`;
       case 'Delta':
-        return '/Delta Site Specific 2019.mp4';
+        return `${baseUrl}/Delta Site Specific 2019.mp4`;
       case 'Cement':
       default:
-        // Default video for Cement or any other plants
-        return '/Delta Site Specific 2019.mp4'; // Using Delta as default since Capitol Cement file not found
+        return `${baseUrl}/Delta Site Specific 2019.mp4`;
     }
   };
 
