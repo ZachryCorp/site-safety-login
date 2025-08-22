@@ -10,12 +10,47 @@ export default function Home() {
     plant: '',
     email: '',
     phone: '',
-    meetingWith: '', 
+    meetingWith: '', // Add this field
   });
 
   const [error, setError] = useState('');
 
   const plants = ['Cement', 'Delta', 'Hoban', 'Poteet', 'Rio Medina', 'Solms'];
+  
+  const meetingWithOptions = [
+    'Adam Ybarra',
+    'Jacob Ackerman', 
+    'William Aiken',
+    'Robert Alvarado',
+    'Julio Avila',
+    'Benjamin Caccamo',
+    'Michael Castillo',
+    'Jose Cedeno',
+    'Diane Christensen',
+    'Daniel Davis',
+    'James Davis',
+    'Eric Ervin',
+    'Jesse Gallegos',
+    'Keith Gilson',
+    'Jose Gonzalez',
+    'Craig Hernandez',
+    'Joseph Hernandez',
+    'Richard Jarzombek',
+    'Erik Kottke',
+    'Mario Lira',
+    'Zachary McMahon',
+    'Raul Molina',
+    'Ramon Riviera',
+    'Jason Stehle',
+    'Derek E. Thorington',
+    'Jagger Tieman',
+    'Arnie Tovar',
+    'Mason Vanderweele',
+    'Tony Ward',
+    'Mike Watson',
+    'Hernan Williams',
+    'Scott Wolston'
+  ];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -23,7 +58,7 @@ export default function Home() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { firstName, lastName, plant, email, phone } = formData;
+    const { firstName, lastName, plant, email, phone, meetingWith } = formData;
 
     if (!firstName || !lastName || !plant || !email || !phone) {
       setError('All fields are required.');
@@ -38,10 +73,6 @@ export default function Home() {
       });
 
       const data = await res.json();
-      if (data.user?.id) {
-  localStorage.setItem('userId', data.user.id.toString());
-}
-
 
       if (data.status === 'existing') {
         navigate('/thank-you');
@@ -126,14 +157,20 @@ export default function Home() {
           </div>
 
           <div style={styles.formGroup}>
-            <label style={styles.label}>Who are you here to meet?</label>
-            <input
+            <label style={styles.label}>Meeting With</label>
+            <select
               name="meetingWith"
-              type="text"
               value={formData.meetingWith}
               onChange={handleChange}
               style={styles.input}
-            />
+            >
+              <option value="">Select a person (optional)</option>
+              {meetingWithOptions.map((person) => (
+                <option key={person} value={person}>
+                  {person}
+                </option>
+              ))}
+            </select>
           </div>
 
           {error && <p style={styles.error}>{error}</p>}
@@ -146,10 +183,6 @@ export default function Home() {
         <button onClick={() => navigate('/admin')} style={styles.adminButton}>
           Go to Admin Portal
         </button>
-      <button onClick={() => navigate('/admin')} style={styles.button}>
-          Visitor/Non MSHA Work Area
-        </button>
-
       </div>
     </div>
   );
