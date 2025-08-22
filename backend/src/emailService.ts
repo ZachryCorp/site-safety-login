@@ -45,6 +45,7 @@ const staffEmails: { [key: string]: string } = {
   'Mike Watson': 'mike.watson@zachrycorp.com',
   'Hernan Williams': 'hernan.williams@zachrycorp.com',
   'Scott Wolston': 'scott.wolston@zachrycorp.com',
+  'Robert Allison': 'robert.allison@zachrycorp.com'
 };
 
 export interface User {
