@@ -22,10 +22,10 @@ app.use(express.json());
 
 // API route to check/add user
 app.post('/api/check-user', async (req: Request, res: Response) => {
-  const { firstName, lastName, plant, email, phone } = req.body;
+  const { firstName, lastName, plant, email, phone, meetingWith } = req.body;
 
   if (!firstName || !lastName || !plant || !email || !phone) {
-    return res.status(400).json({ message: 'Missing fields' });
+    return res.status(400).json({ message: 'Missing required fields' });
   }
 
   try {
@@ -34,16 +34,38 @@ app.post('/api/check-user', async (req: Request, res: Response) => {
     });
 
     if (!user) {
+      // Create new user - only include meetingWith if your database schema has this field
+      const userData: any = { 
+        firstName, 
+        lastName, 
+        plant, 
+        email, 
+        phone
+      };
+      
+      // Uncomment the next line if your database has a meetingWith field
+      // if (meetingWith) userData.meetingWith = meetingWith;
+      
       user = await prisma.user.create({
-        data: { firstName, lastName, plant, email, phone },
+        data: userData,
       });
       return res.json({ status: 'new', user });
     } else {
+      // User exists - optionally update meetingWith if needed
+      // Uncomment if you want to update the meetingWith field for existing users
+      /*
+      if (meetingWith) {
+        user = await prisma.user.update({
+          where: { email },
+          data: { meetingWith }
+        });
+      }
+      */
       return res.json({ status: 'existing', user });
     }
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: 'Server error' });
+    console.error('Database error:', err);
+    return res.status(500).json({ message: 'Server error', error: err });
   }
 });
 
@@ -55,7 +77,7 @@ app.get('/api/users', async (req: Request, res: Response) => {
     });
     res.json(users);
   } catch (err) {
-    console.error(err);
+    console.error('Error fetching users:', err);
     res.status(500).json({ message: 'Error fetching users' });
   }
 });
