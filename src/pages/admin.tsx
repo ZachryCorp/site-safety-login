@@ -1,3 +1,4 @@
+// src/pages/admin.tsx
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -8,9 +9,8 @@ type User = {
   plant: string;
   email: string;
   phone: string;
-  meetingWith?: string;
   createdAt: string;
-  signedOutAt?: string | null;
+  meetingWith?: string;
 };
 
 const Admin: React.FC = () => {
@@ -18,25 +18,21 @@ const Admin: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_API_URL}/api/users`)
-      .then((res) => res.json())
-      .then(setUsers)
-      .catch(console.error);
-  }, []);
-
-  const handleSignOut = async (id: number) => {
-    try {
-      await fetch(`${process.env.REACT_APP_API_URL}/api/signout/${id}`, {
-        method: 'POST',
+    fetch('https://site-safety-login-linux-bmg9dff8a9g6ahej.centralus-01.azurewebsites.net/api/users')
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then((data) => {
+        console.log('Fetched users:', data);
+        setUsers(data);
+      })
+      .catch((err) => {
+        console.error('Failed to fetch users', err);
       });
-      
-      setUsers((prev) =>
-        prev.filter((u) => u.id !== id) 
-      );
-    } catch (err) {
-      console.error('Error signing out user', err);
-    }
-  };
+  }, []);
 
   return (
     <div style={{ padding: '2rem' }}>
@@ -56,7 +52,6 @@ const Admin: React.FC = () => {
               <th>Phone</th>
               <th>Meeting With</th>
               <th>Login Time</th>
-              <th>Sign Out</th>
             </tr>
           </thead>
           <tbody>
@@ -66,11 +61,8 @@ const Admin: React.FC = () => {
                 <td>{u.plant}</td>
                 <td>{u.email}</td>
                 <td>{u.phone}</td>
-                <td>{u.meetingWith || '—'}</td>
+                <td>{u.meetingWith || 'N/A'}</td>
                 <td>{new Date(u.createdAt).toLocaleString()}</td>
-                <td>
-                  <button onClick={() => handleSignOut(u.id)}>Sign Out</button>
-                </td>
               </tr>
             ))}
           </tbody>

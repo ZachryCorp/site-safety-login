@@ -10,7 +10,7 @@ export default function Home() {
     plant: '',
     email: '',
     phone: '',
-    meetingWith: '', // Add this field
+    meetingWith: '',
   });
 
   const [error, setError] = useState('');
@@ -59,7 +59,7 @@ export default function Home() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { firstName, lastName, plant, email, phone, meetingWith } = formData;
+    const { firstName, lastName, plant, email, phone } = formData;
 
     if (!firstName || !lastName || !plant || !email || !phone) {
       setError('All fields are required.');
@@ -67,7 +67,7 @@ export default function Home() {
     }
 
     try {
-      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/check-user`, {
+      const res = await fetch('https://site-safety-login-linux-bmg9dff8a9g6ahej.centralus-01.azurewebsites.net/api/check-user', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -87,7 +87,7 @@ export default function Home() {
   };
 
   const handleDirectSignIn = async () => {
-    const { firstName, lastName, plant, email, phone, meetingWith } = formData;
+    const { firstName, lastName, plant, email, phone } = formData;
 
     if (!firstName || !lastName || !plant || !email || !phone) {
       setError('All fields are required for sign-in.');
@@ -95,7 +95,7 @@ export default function Home() {
     }
 
     try {
-      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/check-user`, {
+      const res = await fetch('https://site-safety-login-linux-bmg9dff8a9g6ahej.centralus-01.azurewebsites.net/api/check-user', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
