@@ -8,109 +8,134 @@ const cors_1 = __importDefault(require("cors"));
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 const app = (0, express_1.default)();
-app.use((0, cors_1.default)());
+// Updated CORS configuration to allow your Static Web App
+app.use((0, cors_1.default)({
+    origin: [
+        'https://gentle-dune-0f70ed110.2.azurestaticapps.net',
+        'http://localhost:3000',
+        'http://localhost:5173',
+        'http://localhost:5000'
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express_1.default.json());
-//  Check/add or update user on login
+// API route to check/add user
 app.post('/api/check-user', async (req, res) => {
     const { firstName, lastName, plant, email, phone, meetingWith } = req.body;
     if (!firstName || !lastName || !plant || !email || !phone) {
-        return res.status(400).json({ message: 'Missing fields' });
+        return res.status(400).json({ message: 'Missing required fields' });
     }
     try {
-        const existingUser = await prisma.user.findUnique({ where: { email } });
-        if (!existingUser) {
-            const newUser = await prisma.user.create({
+        let user = await prisma.user.findUnique({
+            where: { email },
+        });
+        if (!user) {
+            // Create new user - they need training
+            user = await prisma.user.create({
                 data: {
                     firstName,
                     lastName,
                     plant,
                     email,
                     phone,
-                    meetingWith,
+                    meetingWith: meetingWith || null,
+                    trainingCompleted: false // New users haven't completed training yet
                 },
             });
-            return res.json({ status: 'new', user: newUser });
+            return res.json({ status: 'new', user });
         }
         else {
-            const updatedUser = await prisma.user.update({
-                where: { email },
-                data: {
-                    firstName,
-                    lastName,
-                    plant,
-                    phone,
-                    meetingWith,
-                    signedOutAt: null, // reset on new sign-in
-                    createdAt: new Date(), // refresh login time
-                },
-            });
-            return res.json({ status: 'existing', user: updatedUser });
+            // Existing user - update their meetingWith if provided
+            if (meetingWith) {
+                user = await prisma.user.update({
+                    where: { email },
+                    data: {
+                        meetingWith,
+                        updatedAt: new Date()
+                    }
+                });
+            }
+            return res.json({ status: 'existing', user });
         }
     }
     catch (err) {
-        console.error(err);
+        console.error('Database error:', err);
         return res.status(500).json({ message: 'Server error' });
     }
 });
-//  Get currently signed-in users
-app.get('/api/users', async (_req, res) => {
+// API route to mark training as completed
+app.post('/api/complete-training', async (req, res) => {
+    const { email } = req.body;
+    if (!email) {
+        return res.status(400).json({ message: 'Email is required' });
+    }
+    try {
+        const user = await prisma.user.update({
+            where: { email },
+            data: {
+                trainingCompleted: true,
+                trainingDate: new Date()
+            },
+        });
+        return res.json({ status: 'success', user });
+    }
+    catch (err) {
+        console.error('Database error:', err);
+        return res.status(500).json({ message: 'Server error' });
+    }
+});
+// API route for sign out
+app.post('/api/sign-out', async (req, res) => {
+    const { email } = req.body;
+    if (!email) {
+        return res.status(400).json({ message: 'Email is required' });
+    }
+    try {
+        const user = await prisma.user.update({
+            where: { email },
+            data: {
+                signedOutAt: new Date()
+            },
+        });
+        return res.json({ status: 'success', message: 'Signed out successfully' });
+    }
+    catch (err) {
+        console.error('Sign out error:', err);
+        return res.status(404).json({ message: 'User not found' });
+    }
+});
+// API route to get all users for the admin portal
+app.get('/api/users', async (req, res) => {
     try {
         const users = await prisma.user.findMany({
-            where: { signedOutAt: null },
             orderBy: { createdAt: 'desc' },
         });
         res.json(users);
     }
     catch (err) {
-        console.error(err);
+        console.error('Error fetching users:', err);
         res.status(500).json({ message: 'Error fetching users' });
     }
 });
-// Sign out by ID (admin panel use)
-app.post('/api/signout/:id', async (req, res) => {
-    const id = Number(req.params.id);
-    if (!id)
-        return res.status(400).json({ message: 'Invalid user ID' });
+// API route to get only trained users
+app.get('/api/trained-users', async (req, res) => {
     try {
-        const updated = await prisma.user.update({
-            where: { id },
-            data: { signedOutAt: new Date() },
+        const users = await prisma.user.findMany({
+            where: { trainingCompleted: true },
+            orderBy: { trainingDate: 'desc' },
         });
-        res.json({ message: 'Signed out successfully', user: updated });
+        res.json(users);
     }
     catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Server error during sign-out' });
+        console.error('Error fetching trained users:', err);
+        res.status(500).json({ message: 'Error fetching trained users' });
     }
 });
-//  Sign out by name (SignOut page use)
-app.post('/api/signout-by-name', async (req, res) => {
-    const { firstName, lastName } = req.body;
-    if (!firstName || !lastName) {
-        return res.status(400).json({ message: 'First and last name are required.' });
-    }
-    try {
-        const user = await prisma.user.findFirst({
-            where: {
-                firstName: { contains: firstName },
-                lastName: { contains: lastName },
-                signedOutAt: null,
-            },
-            orderBy: { createdAt: 'desc' },
-        });
-        if (!user) {
-            return res.status(404).json({ message: 'User not found or already signed out.' });
-        }
-        const updated = await prisma.user.update({
-            where: { id: user.id },
-            data: { signedOutAt: new Date() },
-        });
-        res.json({ message: 'Signed out successfully', user: updated });
-    }
-    catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Server error' });
-    }
+// Health check endpoint
+app.get('/', (req, res) => {
+    res.json({ message: 'Site Safety Login API is running' });
 });
 const port = process.env.PORT || 5000;
 app.listen(port, () => {
