@@ -13,7 +13,7 @@ type User = {
   meetingWith?: string;
   trainingCompleted: boolean;
   trainingDate?: string;
-  signedOutAt?: string;
+  signedOutAt?: string | null;
 };
 
 const Admin: React.FC = () => {
@@ -21,7 +21,7 @@ const Admin: React.FC = () => {
   const [filter, setFilter] = useState<'all' | 'trained' | 'untrained'>('all');
   const navigate = useNavigate();
 
-  useEffect(() => {
+  const fetchUsers = () => {
     fetch('https://site-safety-login-linux-bmg9dff8a9g6ahej.centralus-01.azurewebsites.net/api/users')
       .then((res) => {
         if (!res.ok) {
@@ -36,7 +36,33 @@ const Admin: React.FC = () => {
       .catch((err) => {
         console.error('Failed to fetch users', err);
       });
+  };
+
+  useEffect(() => {
+    fetchUsers();
   }, []);
+
+  const handleSignOut = async (email: string) => {
+    if (!confirm('Are you sure you want to sign out this user?')) return;
+
+    try {
+      const res = await fetch('https://site-safety-login-linux-bmg9dff8a9g6ahej.centralus-01.azurewebsites.net/api/sign-out', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      if (res.ok) {
+        alert('User signed out successfully');
+        fetchUsers(); // Refresh the list
+      } else {
+        alert('Failed to sign out user');
+      }
+    } catch (err) {
+      console.error('Sign out error:', err);
+      alert('Error signing out user');
+    }
+  };
 
   const filteredUsers = users.filter(user => {
     if (filter === 'trained') return user.trainingCompleted;
@@ -48,47 +74,47 @@ const Admin: React.FC = () => {
   const untrainedCount = users.filter(u => !u.trainingCompleted).length;
 
   const exportToCSV = () => {
-  interface CSVRow {
-    Name: string;
-    Plant: string;
-    Email: string;
-    Phone: string;
-    'Meeting With': string;
-    'Training Status': string;
-    'Training Date': string;
-    'First Login': string;
-    'Last Sign Out': string;
-  }
+    interface CSVRow {
+      Name: string;
+      Plant: string;
+      Email: string;
+      Phone: string;
+      'Meeting With': string;
+      'Training Status': string;
+      'Training Date': string;
+      'First Login': string;
+      'Last Sign Out': string;
+    }
 
-  const csvData: CSVRow[] = filteredUsers.map(u => ({
-    Name: `${u.firstName} ${u.lastName}`,
-    Plant: u.plant,
-    Email: u.email,
-    Phone: u.phone,
-    'Meeting With': u.meetingWith || 'N/A',
-    'Training Status': u.trainingCompleted ? 'Completed' : 'Not Completed',
-    'Training Date': u.trainingDate ? new Date(u.trainingDate).toLocaleString() : 'N/A',
-    'First Login': new Date(u.createdAt).toLocaleString(),
-    'Last Sign Out': u.signedOutAt ? new Date(u.signedOutAt).toLocaleString() : 'Currently signed in'
-  }));
+    const csvData: CSVRow[] = filteredUsers.map(u => ({
+      Name: `${u.firstName} ${u.lastName}`,
+      Plant: u.plant,
+      Email: u.email,
+      Phone: u.phone,
+      'Meeting With': u.meetingWith || 'N/A',
+      'Training Status': u.trainingCompleted ? 'Completed' : 'Not Completed',
+      'Training Date': u.trainingDate ? new Date(u.trainingDate).toLocaleString() : 'N/A',
+      'First Login': new Date(u.createdAt).toLocaleString(),
+      'Last Sign Out': u.signedOutAt ? new Date(u.signedOutAt).toLocaleString() : 'Currently signed in'
+    }));
 
-  if (csvData.length === 0) return;
+    if (csvData.length === 0) return;
 
-  const headers = Object.keys(csvData[0]) as (keyof CSVRow)[];
-  const csvContent = [
-    headers.join(','),
-    ...csvData.map(row => 
-      headers.map(header => `"${row[header]}"`).join(',')
-    )
-  ].join('\n');
+    const headers = Object.keys(csvData[0]) as (keyof CSVRow)[];
+    const csvContent = [
+      headers.join(','),
+      ...csvData.map(row => 
+        headers.map(header => `"${row[header]}"`).join(',')
+      )
+    ].join('\n');
 
-  const blob = new Blob([csvContent], { type: 'text/csv' });
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.setAttribute('href', url);
-  a.setAttribute('download', `safety_training_report_${new Date().toISOString().split('T')[0]}.csv`);
-  a.click();
-};
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.setAttribute('href', url);
+    a.setAttribute('download', `safety_training_report_${new Date().toISOString().split('T')[0]}.csv`);
+    a.click();
+  };
 
   return (
     <div style={{ padding: '2rem' }}>
@@ -148,7 +174,8 @@ const Admin: React.FC = () => {
               <th>Training Status</th>
               <th>Training Date</th>
               <th>First Login</th>
-              <th>Last Sign Out</th>
+              <th>Sign Out Status</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -172,10 +199,31 @@ const Admin: React.FC = () => {
                     : 'N/A'}
                 </td>
                 <td>{new Date(u.createdAt).toLocaleString()}</td>
-                <td>
+                <td style={{ 
+                  textAlign: 'center',
+                  color: u.signedOutAt ? 'gray' : 'green'
+                }}>
                   {u.signedOutAt 
-                    ? new Date(u.signedOutAt).toLocaleString() 
-                    : 'Currently signed in'}
+                    ? `Signed out: ${new Date(u.signedOutAt).toLocaleString()}` 
+                    : '🟢 Currently signed in'}
+                </td>
+                <td style={{ textAlign: 'center' }}>
+                  {!u.signedOutAt && (
+                    <button
+                      onClick={() => handleSignOut(u.email)}
+                      style={{
+                        padding: '0.25rem 0.75rem',
+                        backgroundColor: '#dc3545',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '0.9rem'
+                      }}
+                    >
+                      Sign Out
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
