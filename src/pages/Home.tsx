@@ -282,12 +282,12 @@ export default function Home() {
           {error && <p style={styles.error}>{error}</p>}
 
           <button type="submit" style={styles.button}>
-            Continue
+            Site Specific Training
           </button>
         </form>
 
         <button onClick={handleDirectSignIn} style={styles.directSignInButton}>
-          Sign In (Skip Training)
+          Sign In
         </button>
 
         <button onClick={handleSignOut} style={styles.signOutButton}>
