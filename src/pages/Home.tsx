@@ -17,9 +17,45 @@ export default function Home() {
 
   const plants = ['Cement', 'Delta', 'Hoban', 'Poteet', 'Rio Medina', 'Solms'];
   
-  const meetingWithOptions = [
+  const cementMeetingOptions = [
+    'Brittney Hill - Jr. Process Engineer',
+    'Alexis Navarro - HR Generalist',
+    'Adam Ybarra - Safety Manager',
+    'William Aiken - QC Supervisor',
+    'Robert Alvarado - Maintenance Supervisor',
+    'Julio Avila - Sr. Process Engineer',
+    'Ben Caccamo - Engineer',
+    'Michael Castillo - Warehouse Supervisor',
+    'Jose Cedeno - Reliability Engineer',
+    'Diane Christensen - Procurement Manager',
+    'Daniel Davis - Shift Supervisor',
+    'James Davis - Electrical Supervisor',
+    'Eric Ervin - VP Cement',
+    'Jesse Gallegos - Shipping Lead',
+    'Keith Gilson - Shift Supervisor',
+    'Jose Gonzalez - Maintenance Engineer',
+    'Craig Hernandez - Sr. Production Supervisor',
+    'Joseph Hernandez - Yard Manager',
+    'Richard Jarzombek - Engineering Manager',
+    'Eric Kottke - Production Manager',
+    'Mario Lira - Automation Engineer',
+    'Zach McMahon - Environmental Engineer',
+    'Raul Molina - Maintenance Manager',
+    'Ramon Rivera - Shift Supervisor',
+    'Victor Saucedo - Maintenance Engineer',
+    'Jason Stehle - Heavy Equipment Supervisor',
+    'Derek Thorington - Plant Manager',
+    'Jagger Tiemann - Engineer Tech',
+    'Arnie Tovar - Electrical Manager',
+    'Mason Vanderweele - Environmental Engineer',
+    'Tony Ward - Shift Supervisor',
+    'Hernan Williams - Automation Engineer',
+    'Scott Wolston - Director Distribution'
+  ];
+
+  const allPlantsMeetingOptions = [
     'Adam Ybarra',
-    'Jacob Ackerman', 
+    'Jacob Ackerman',
     'William Aiken',
     'Robert Allison',
     'Robert Alvarado',
@@ -53,8 +89,21 @@ export default function Home() {
     'Scott Wolston'
   ];
 
+  // Get the appropriate meeting options based on selected plant
+  const getMeetingOptions = () => {
+    return formData.plant === 'Cement' ? cementMeetingOptions : allPlantsMeetingOptions;
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    
+    // Clear meetingWith if plant changes
+    if (name === 'plant' && value !== formData.plant) {
+      setFormData(prev => ({ ...prev, plant: value, meetingWith: '' }));
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -189,7 +238,7 @@ export default function Home() {
               style={styles.input}
             >
               <option value="">Select a person (optional)</option>
-              {meetingWithOptions.map((person) => (
+              {getMeetingOptions().map((person) => (
                 <option key={person} value={person}>
                   {person}
                 </option>
