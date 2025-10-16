@@ -34,65 +34,62 @@ app.post('/api/check-user', async (req: Request, res: Response) => {
     });
 
     if (!user) {
-      // Create new user - only include meetingWith if your database schema has this field
-      const userData: any = { 
-        firstName, 
-        lastName, 
-        plant, 
-        email, 
-        phone
-      };
-      
-      // Uncomment the next line if your database has a meetingWith field
-      // if (meetingWith) userData.meetingWith = meetingWith;
-      
+      // Create new user - they need training
       user = await prisma.user.create({
-        data: userData,
+        data: { 
+          firstName, 
+          lastName, 
+          plant, 
+          email, 
+          phone,
+          meetingWith: meetingWith || null,
+          trainingCompleted: false  // New users haven't completed training yet
+        },
       });
       return res.json({ status: 'new', user });
     } else {
-      // User exists - optionally update meetingWith if needed
-      // Uncomment if you want to update the meetingWith field for existing users
-      /*
+      // Existing user - update their meetingWith if provided
       if (meetingWith) {
         user = await prisma.user.update({
           where: { email },
-          data: { meetingWith }
+          data: { 
+            meetingWith,
+            updatedAt: new Date()
+          }
         });
       }
-      */
       return res.json({ status: 'existing', user });
     }
   } catch (err) {
     console.error('Database error:', err);
-    return res.status(500).json({ message: 'Server error', error: err });
+    return res.status(500).json({ message: 'Server error' });
   }
 });
 
-// API route to get all users for the admin portal
-app.get('/api/users', async (req: Request, res: Response) => {
+// API route to mark training as completed
+app.post('/api/complete-training', async (req: Request, res: Response) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ message: 'Email is required' });
+  }
+
   try {
-    const users = await prisma.user.findMany({
-      orderBy: { createdAt: 'desc' },
+    const user = await prisma.user.update({
+      where: { email },
+      data: { 
+        trainingCompleted: true,
+        trainingDate: new Date()
+      },
     });
-    res.json(users);
+    return res.json({ status: 'success', user });
   } catch (err) {
-    console.error('Error fetching users:', err);
-    res.status(500).json({ message: 'Error fetching users' });
+    console.error('Database error:', err);
+    return res.status(500).json({ message: 'Server error' });
   }
 });
 
-// Health check endpoint
-app.get('/', (req: Request, res: Response) => {
-  res.json({ message: 'Site Safety Login API is running' });
-});
-
-const port = process.env.PORT || 5000;
-app.listen(port, () => {
-  console.log(`Backend running on http://localhost:${port}`);
-});
-
-// Add this API route for sign out
+// API route for sign out
 app.post('/api/sign-out', async (req: Request, res: Response) => {
   const { email } = req.body;
 
@@ -112,4 +109,41 @@ app.post('/api/sign-out', async (req: Request, res: Response) => {
     console.error('Sign out error:', err);
     return res.status(404).json({ message: 'User not found' });
   }
+});
+
+// API route to get all users for the admin portal
+app.get('/api/users', async (req: Request, res: Response) => {
+  try {
+    const users = await prisma.user.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json(users);
+  } catch (err) {
+    console.error('Error fetching users:', err);
+    res.status(500).json({ message: 'Error fetching users' });
+  }
+});
+
+// API route to get only trained users
+app.get('/api/trained-users', async (req: Request, res: Response) => {
+  try {
+    const users = await prisma.user.findMany({
+      where: { trainingCompleted: true },
+      orderBy: { trainingDate: 'desc' },
+    });
+    res.json(users);
+  } catch (err) {
+    console.error('Error fetching trained users:', err);
+    res.status(500).json({ message: 'Error fetching trained users' });
+  }
+});
+
+// Health check endpoint
+app.get('/', (req: Request, res: Response) => {
+  res.json({ message: 'Site Safety Login API is running' });
+});
+
+const port = process.env.PORT || 5000;
+app.listen(port, () => {
+  console.log(`Backend running on http://localhost:${port}`);
 });

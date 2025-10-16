@@ -5,19 +5,21 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlserver"  // Change back to sqlserver
+  provider = "sqlserver"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id          Int       @id @default(autoincrement())
-  firstName   String
-  lastName    String
-  plant       String
-  email       String    @unique
-  phone       String
-  meetingWith String?
-  signedOutAt DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id                Int       @id @default(autoincrement())
+  firstName         String
+  lastName          String
+  plant             String
+  email             String    @unique
+  phone             String
+  meetingWith       String?
+  trainingCompleted Boolean   @default(false)
+  trainingDate      DateTime?  // Add this line if missing
+  signedOutAt       DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 }
