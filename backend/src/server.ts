@@ -91,3 +91,25 @@ const port = process.env.PORT || 5000;
 app.listen(port, () => {
   console.log(`Backend running on http://localhost:${port}`);
 });
+
+// Add this API route for sign out
+app.post('/api/sign-out', async (req: Request, res: Response) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ message: 'Email is required' });
+  }
+
+  try {
+    const user = await prisma.user.update({
+      where: { email },
+      data: { 
+        signedOutAt: new Date()
+      },
+    });
+    return res.json({ status: 'success', message: 'Signed out successfully' });
+  } catch (err) {
+    console.error('Sign out error:', err);
+    return res.status(404).json({ message: 'User not found' });
+  }
+});

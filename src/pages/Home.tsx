@@ -55,7 +55,6 @@ export default function Home() {
 
   const allPlantsMeetingOptions = [
     'Adam Ybarra',
-    'Jacob Ackerman',
     'William Aiken',
     'Robert Allison',
     'Robert Alvarado',
@@ -89,7 +88,6 @@ export default function Home() {
     'Scott Wolston'
   ];
 
-  // Get the appropriate meeting options based on selected plant
   const getMeetingOptions = () => {
     return formData.plant === 'Cement' ? cementMeetingOptions : allPlantsMeetingOptions;
   };
@@ -98,7 +96,6 @@ export default function Home() {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
     
-    // Clear meetingWith if plant changes
     if (name === 'plant' && value !== formData.plant) {
       setFormData(prev => ({ ...prev, plant: value, meetingWith: '' }));
     } else {
@@ -152,6 +149,42 @@ export default function Home() {
 
       const data = await res.json();
       navigate('/thank-you');
+    } catch (err) {
+      console.error(err);
+      setError('Server error. Please try again later.');
+    }
+  };
+
+  const handleSignOut = async () => {
+    const { email } = formData;
+
+    if (!email) {
+      setError('Please enter your email to sign out.');
+      return;
+    }
+
+    try {
+      const res = await fetch('https://site-safety-login-linux-bmg9dff8a9g6ahej.centralus-01.azurewebsites.net/api/sign-out', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      if (res.ok) {
+        alert('You have been successfully signed out.');
+        // Clear the form
+        setFormData({
+          firstName: '',
+          lastName: '',
+          plant: '',
+          email: '',
+          phone: '',
+          meetingWith: '',
+        });
+        setError('');
+      } else {
+        setError('Unable to sign out. Please check your email.');
+      }
     } catch (err) {
       console.error(err);
       setError('Server error. Please try again later.');
@@ -257,6 +290,10 @@ export default function Home() {
           Sign In (Skip Training)
         </button>
 
+        <button onClick={handleSignOut} style={styles.signOutButton}>
+          Sign Out
+        </button>
+
         <button onClick={() => navigate('/admin')} style={styles.adminButton}>
           Go to Admin Portal
         </button>
@@ -337,6 +374,18 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 600,
     cursor: 'pointer',
     marginTop: '1rem',
+    width: '100%',
+  },
+  signOutButton: {
+    padding: '0.75rem',
+    border: 'none',
+    borderRadius: 6,
+    backgroundColor: '#dc3545',
+    color: '#fff',
+    fontSize: '1rem',
+    fontWeight: 600,
+    cursor: 'pointer',
+    marginTop: '0.5rem',
     width: '100%',
   },
   error: {
