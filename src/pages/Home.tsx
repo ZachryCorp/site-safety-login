@@ -55,7 +55,6 @@ export default function Home() {
 
   const allPlantsMeetingOptions = [
     'Adam Ybarra',
-    'Jacob Ackerman',
     'William Aiken',
     'Robert Allison',
     'Robert Alvarado',
@@ -114,18 +113,26 @@ export default function Home() {
     }
 
     try {
-      const res = await fetch('https://site-safety-login-linux-bmg9dff8a9g6ahej.centralus-01.azurewebsites.net/api/check-user', {
+      // Save user data to localStorage for use in video/quiz pages
+      localStorage.setItem('userEmail', formData.email);
+      localStorage.setItem('userName', `${formData.firstName} ${formData.lastName}`);
+      localStorage.setItem('userPlant', formData.plant);
+      
+      // Create or update user record in database
+      const res = await fetch('https://site-safety-login-linux-bmg9dff8a9g6ahej.centralus-01.azurewebsites.net/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          signedOutAt: null // Clear any previous sign-out time
+        }),
       });
 
-      const data = await res.json();
-
-      if (data.status === 'existing') {
-        navigate('/thank-you');
-      } else {
+      if (res.ok) {
+        // Always go to video for Site Specific Training
         navigate('/video', { state: formData });
+      } else {
+        setError('Server error. Please try again.');
       }
     } catch (err) {
       console.error(err);
@@ -142,14 +149,42 @@ export default function Home() {
     }
 
     try {
-      const res = await fetch('https://site-safety-login-linux-bmg9dff8a9g6ahej.centralus-01.azurewebsites.net/api/check-user', {
+      // First check if user has completed training
+      const checkRes = await fetch(`https://site-safety-login-linux-bmg9dff8a9g6ahej.centralus-01.azurewebsites.net/api/check-user?email=${email}`);
+      
+      if (checkRes.ok) {
+        const checkData = await checkRes.json();
+        
+        // Only allow direct sign-in if they've completed training
+        if (!checkData.exists) {
+          setError('User not found. Please complete Site Specific Training first.');
+          return;
+        }
+        
+        if (!checkData.trainingCompleted) {
+          setError('Training not completed. Please click "Site Specific Training" to complete your training first.');
+          return;
+        }
+      }
+
+      // If training is completed, update their sign-in status
+      const res = await fetch('https://site-safety-login-linux-bmg9dff8a9g6ahej.centralus-01.azurewebsites.net/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          signedOutAt: null // Clear any previous sign-out time
+        }),
       });
 
-      const data = await res.json();
-      navigate('/thank-you');
+      if (res.ok) {
+        localStorage.setItem('userEmail', formData.email);
+        localStorage.setItem('userName', `${formData.firstName} ${formData.lastName}`);
+        localStorage.setItem('userPlant', formData.plant);
+        navigate('/thank-you');
+      } else {
+        setError('Server error. Please try again.');
+      }
     } catch (err) {
       console.error(err);
       setError('Server error. Please try again later.');
@@ -288,7 +323,7 @@ export default function Home() {
         </form>
 
         <button onClick={handleDirectSignIn} style={styles.directSignInButton}>
-          Sign In
+          Sign In (Already Trained)
         </button>
 
         <button onClick={handleSignOut} style={styles.signOutButton}>
