@@ -3,7 +3,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
-import PDFDocument from 'pdfkit';
+//import PDFDocument from 'pdfkit';
 import fs from 'fs';
 import path from 'path';
 
