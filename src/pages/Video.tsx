@@ -29,18 +29,16 @@ const Video: React.FC = () => {
   };
 
   // Map plants to their specific video files from Azure Blob Storage
-  // URLs are properly encoded for spaces and special characters
   const getVideoSource = (plantName: string) => {
     const baseUrl = 'https://sitesafetyvideos.blob.core.windows.net/training-videos';
     
-    // Video filenames with proper URL encoding
     const videos: { [key: string]: string } = {
       'Poteet': 'Poteet%20Site%20Specific.mp4',
       'Hoban': 'Hoban%20SIte%20Specific%20Hazard%20Training%20Video%202019.mp4',
       'Rio Medina': 'Rio%20Medina%20Site%20Specific%206.-8-2019.mp4',
       'Solms': 'Solms%20Site%20Specific(2).mp4',
       'Delta': 'Delta%20Site%20Specific%202019.mp4',
-      'Cement': 'Delta%20Site%20Specific%202019.mp4' // Using Delta video for Cement
+      'Cement': 'site%20specific%20-%20Cement.mp4'
     };
 
     const videoFile = videos[plantName] || videos['Delta']; // Default to Delta if plant not found
@@ -63,8 +61,8 @@ const Video: React.FC = () => {
       const percentage = (video.currentTime / video.duration) * 100;
       setProgress(Math.round(percentage));
       
-      // Mark as watched if they've seen 90% or more
-      if (percentage >= 90 && !videoWatched) {
+      // Mark as watched if they've seen 95% or more
+      if (percentage >= 95 && !videoWatched) {
         setVideoWatched(true);
       }
     }
