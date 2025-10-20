@@ -1,5 +1,5 @@
 "use strict";
-// backend/src/server.ts - Complete file with all features
+// backend/src/server.ts - Complete file with all features including email
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -7,6 +7,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const client_1 = require("@prisma/client");
+const emailService_1 = require("./emailService");
 const app = (0, express_1.default)();
 const prisma = new client_1.PrismaClient();
 const PORT = process.env.PORT || 5000;
@@ -39,6 +40,25 @@ app.post('/api/users', async (req, res) => {
                     updatedAt: new Date()
                 }
             });
+            // Send email notification if meeting with someone
+            if (meetingWith) {
+                try {
+                    await (0, emailService_1.sendSignInEmail)({
+                        firstName,
+                        lastName,
+                        plant,
+                        email,
+                        phone,
+                        meetingWith,
+                        createdAt: new Date()
+                    });
+                    console.log(`Sign-in email sent for ${firstName} ${lastName} meeting with ${meetingWith}`);
+                }
+                catch (emailError) {
+                    console.error('Failed to send sign-in email:', emailError);
+                    // Don't fail the request if email fails
+                }
+            }
             res.json({
                 message: 'User signed in successfully',
                 user: updatedUser,
@@ -60,6 +80,25 @@ app.post('/api/users', async (req, res) => {
                     signedOutAt: null
                 }
             });
+            // Send email notification if meeting with someone
+            if (meetingWith) {
+                try {
+                    await (0, emailService_1.sendSignInEmail)({
+                        firstName,
+                        lastName,
+                        plant,
+                        email,
+                        phone,
+                        meetingWith,
+                        createdAt: new Date()
+                    });
+                    console.log(`Sign-in email sent for ${firstName} ${lastName} meeting with ${meetingWith}`);
+                }
+                catch (emailError) {
+                    console.error('Failed to send sign-in email:', emailError);
+                    // Don't fail the request if email fails
+                }
+            }
             res.json({
                 message: 'User created successfully',
                 user: newUser,
@@ -158,16 +197,43 @@ app.post('/api/sign-out', async (req, res) => {
         if (!email) {
             return res.status(400).json({ error: 'Email is required' });
         }
-        const user = await prisma.user.update({
+        // Get user details before signing out
+        const user = await prisma.user.findUnique({
+            where: { email }
+        });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        // Update sign-out time
+        const updatedUser = await prisma.user.update({
             where: { email },
             data: {
                 signedOutAt: new Date()
             }
         });
+        // Send email notification if they were meeting with someone
+        if (user.meetingWith) {
+            try {
+                await (0, emailService_1.sendSignOutEmail)({
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    plant: user.plant,
+                    email: user.email,
+                    phone: user.phone,
+                    meetingWith: user.meetingWith,
+                    createdAt: user.createdAt
+                });
+                console.log(`Sign-out email sent for ${user.firstName} ${user.lastName}`);
+            }
+            catch (emailError) {
+                console.error('Failed to send sign-out email:', emailError);
+                // Don't fail the request if email fails
+            }
+        }
         res.json({
             success: true,
             message: 'User signed out successfully',
-            user
+            user: updatedUser
         });
     }
     catch (error) {
@@ -211,7 +277,7 @@ app.get('/api/users/signed-in', async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch signed-in users' });
     }
 });
-// PDF Generation function
+// PDF Generation function (commented out until PDFKit is installed)
 /*
 async function generateSiteSpecificCertificate(user: any): Promise<Buffer> {
   return new Promise((resolve, reject) => {
