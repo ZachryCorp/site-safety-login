@@ -323,7 +323,7 @@ export default function Home() {
         </form>
 
         <button onClick={handleDirectSignIn} style={styles.directSignInButton}>
-          Sign In (Already Trained)
+          Sign In
         </button>
 
         <button onClick={handleSignOut} style={styles.signOutButton}>

@@ -25,6 +25,10 @@ const Video: React.FC = () => {
   }, [firstName, lastName, plant, navigate]);
 
   const handleNext = () => {
+    if (!videoWatched) {
+      alert('Please watch the complete training video before proceeding to the quiz.');
+      return;
+    }
     navigate('/quiz', { state: { firstName, lastName, plant } });
   };
 
@@ -132,9 +136,13 @@ const Video: React.FC = () => {
 
         <div style={styles.instructions}>
           <p>Please watch the entire safety training video before proceeding to the quiz.</p>
-          {videoWatched && (
+          {videoWatched ? (
             <p style={styles.successMessage}>
               ✓ Video training complete! You may now proceed to the quiz.
+            </p>
+          ) : (
+            <p style={styles.warningMessage}>
+              ⚠ You must watch the full video (95% or more) to continue.
             </p>
           )}
         </div>
@@ -142,28 +150,16 @@ const Video: React.FC = () => {
         <div style={styles.buttonContainer}>
           <button 
             onClick={handleNext} 
+            disabled={!videoWatched}
             style={{
               ...styles.button,
-              backgroundColor: videoWatched ? '#28a745' : '#007bff',
-              opacity: videoWatched ? 1 : 0.8
+              backgroundColor: videoWatched ? '#28a745' : '#6c757d',
+              opacity: videoWatched ? 1 : 0.6,
+              cursor: videoWatched ? 'pointer' : 'not-allowed'
             }}
           >
-            {videoWatched ? '✓ Continue to Quiz' : 'Continue to Quiz'}
+            {videoWatched ? '✓ Continue to Quiz' : 'Complete Video to Continue'}
           </button>
-          
-          {/* Optional: Skip button for testing - remove in production */}
-          {!videoWatched && (
-            <button 
-              onClick={() => {
-                if (window.confirm('This is for testing only. In production, you must watch the full video. Continue?')) {
-                  handleNext();
-                }
-              }} 
-              style={styles.skipButton}
-            >
-              Skip (Testing Only)
-            </button>
-          )}
         </div>
       </div>
     </div>
@@ -265,6 +261,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 'bold',
     marginTop: '0.5rem',
   },
+  warningMessage: {
+    color: '#856404',
+    fontWeight: 'bold',
+    marginTop: '0.5rem',
+  },
   buttonContainer: {
     display: 'flex',
     gap: '1rem',
@@ -277,17 +278,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: '#fff',
     fontSize: '1rem',
     fontWeight: 600,
-    cursor: 'pointer',
-    transition: 'background-color 0.3s',
-  },
-  skipButton: {
-    padding: '0.75rem 1rem',
-    border: '1px solid #6c757d',
-    borderRadius: 6,
-    backgroundColor: 'transparent',
-    color: '#6c757d',
-    fontSize: '0.9rem',
-    cursor: 'pointer',
+    transition: 'all 0.3s',
   },
 };
 
