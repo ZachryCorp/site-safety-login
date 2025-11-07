@@ -10,97 +10,15 @@ export default function Home() {
     plant: '',
     email: '',
     phone: '',
-    meetingWith: '',
   });
 
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const plants = ['Cement', 'Delta', 'Hoban', 'Poteet', 'Rio Medina', 'Solms'];
-  
-  const cementMeetingOptions = [
-    'Brittney Hill - Jr. Process Engineer',
-    'Alexis Navarro - HR Generalist',
-    'Adam Ybarra - Safety Manager',
-    'William Aiken - QC Supervisor',
-    'Robert Alvarado - Maintenance Supervisor',
-    'Julio Avila - Sr. Process Engineer',
-    'Ben Caccamo - Engineer',
-    'Michael Castillo - Warehouse Supervisor',
-    'Jose Cedeno - Reliability Engineer',
-    'Diane Christensen - Procurement Manager',
-    'Daniel Davis - Shift Supervisor',
-    'James Davis - Electrical Supervisor',
-    'Eric Ervin - VP Cement',
-    'Jesse Gallegos - Shipping Lead',
-    'Keith Gilson - Shift Supervisor',
-    'Jose Gonzalez - Maintenance Engineer',
-    'Craig Hernandez - Sr. Production Supervisor',
-    'Joseph Hernandez - Yard Manager',
-    'Richard Jarzombek - Engineering Manager',
-    'Eric Kottke - Production Manager',
-    'Mario Lira - Automation Engineer',
-    'Zach McMahon - Environmental Engineer',
-    'Raul Molina - Maintenance Manager',
-    'Ramon Rivera - Shift Supervisor',
-    'Victor Saucedo - Maintenance Engineer',
-    'Jason Stehle - Heavy Equipment Supervisor',
-    'Derek Thorington - Plant Manager',
-    'Jagger Tiemann - Engineer Tech',
-    'Arnie Tovar - Electrical Manager',
-    'Mason Vanderweele - Environmental Engineer',
-    'Tony Ward - Shift Supervisor',
-    'Hernan Williams - Automation Engineer',
-    'Scott Wolston - Director Distribution'
-  ];
-
-  const allPlantsMeetingOptions = [
-    'Adam Ybarra',
-    'William Aiken',
-    'Robert Allison',
-    'Robert Alvarado',
-    'Julio Avila',
-    'Benjamin Caccamo',
-    'Michael Castillo',
-    'Jose Cedeno',
-    'Diane Christensen',
-    'Daniel Davis',
-    'James Davis',
-    'Eric Ervin',
-    'Jesse Gallegos',
-    'Keith Gilson',
-    'Jose Gonzalez',
-    'Craig Hernandez',
-    'Joseph Hernandez',
-    'Richard Jarzombek',
-    'Erik Kottke',
-    'Mario Lira',
-    'Zachary McMahon',
-    'Raul Molina',
-    'Ramon Riviera',
-    'Jason Stehle',
-    'Derek E. Thorington',
-    'Jagger Tieman',
-    'Arnie Tovar',
-    'Mason Vanderweele',
-    'Tony Ward',
-    'Mike Watson',
-    'Hernan Williams',
-    'Scott Wolston'
-  ];
-
-  const getMeetingOptions = () => {
-    return formData.plant === 'Cement' ? cementMeetingOptions : allPlantsMeetingOptions;
-  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-    
-    if (name === 'plant' && value !== formData.plant) {
-      setFormData(prev => ({ ...prev, plant: value, meetingWith: '' }));
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -112,118 +30,35 @@ export default function Home() {
       return;
     }
 
+    setLoading(true);
+    setError('');
+
     try {
-      // Save user data to localStorage for use in video/quiz pages
-      localStorage.setItem('userEmail', formData.email);
-      localStorage.setItem('userName', `${formData.firstName} ${formData.lastName}`);
-      localStorage.setItem('userPlant', formData.plant);
-      
-      // Create or update user record in database
-      const res = await fetch('https://site-safety-login-linux-bmg9dff8a9g6ahej.centralus-01.azurewebsites.net/api/users', {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/check-user`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          signedOutAt: null // Clear any previous sign-out time
-        }),
+        body: JSON.stringify(formData),
       });
 
-      if (res.ok) {
-        // Always go to video for Site Specific Training
+      const data = await res.json();
+
+      if (data.needsTraining) {
+        // User needs to complete training for this plant
         navigate('/video', { state: formData });
       } else {
-        setError('Server error. Please try again.');
-      }
-    } catch (err) {
-      console.error(err);
-      setError('Server error. Please try again later.');
-    }
-  };
-
-  const handleDirectSignIn = async () => {
-    const { firstName, lastName, plant, email, phone } = formData;
-
-    if (!firstName || !lastName || !plant || !email || !phone) {
-      setError('All fields are required for sign-in.');
-      return;
-    }
-
-    try {
-      // First check if user has completed training
-      const checkRes = await fetch(`https://site-safety-login-linux-bmg9dff8a9g6ahej.centralus-01.azurewebsites.net/api/check-user?email=${email}`);
-      
-      if (checkRes.ok) {
-        const checkData = await checkRes.json();
-        
-        // Only allow direct sign-in if they've completed training
-        if (!checkData.exists) {
-          setError('User not found. Please complete Site Specific Training first.');
-          return;
-        }
-        
-        if (!checkData.trainingCompleted) {
-          setError('Training not completed. Please click "Site Specific Training" to complete your training first.');
-          return;
-        }
-      }
-
-      // If training is completed, update their sign-in status
-      const res = await fetch('https://site-safety-login-linux-bmg9dff8a9g6ahej.centralus-01.azurewebsites.net/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          signedOutAt: null // Clear any previous sign-out time
-        }),
-      });
-
-      if (res.ok) {
-        localStorage.setItem('userEmail', formData.email);
-        localStorage.setItem('userName', `${formData.firstName} ${formData.lastName}`);
-        localStorage.setItem('userPlant', formData.plant);
-        navigate('/thank-you');
-      } else {
-        setError('Server error. Please try again.');
-      }
-    } catch (err) {
-      console.error(err);
-      setError('Server error. Please try again later.');
-    }
-  };
-
-  const handleSignOut = async () => {
-    const { email } = formData;
-
-    if (!email) {
-      setError('Please enter your email to sign out.');
-      return;
-    }
-
-    try {
-      const res = await fetch('https://site-safety-login-linux-bmg9dff8a9g6ahej.centralus-01.azurewebsites.net/api/sign-out', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-
-      if (res.ok) {
-        alert('You have been successfully signed out.');
-        // Clear the form
-        setFormData({
-          firstName: '',
-          lastName: '',
-          plant: '',
-          email: '',
-          phone: '',
-          meetingWith: '',
+        // User has already completed training for this plant
+        navigate('/thank-you?existing=true&trained=true', { 
+          state: { 
+            ...formData,
+            trainingRecord: data.trainingRecord 
+          } 
         });
-        setError('');
-      } else {
-        setError('Unable to sign out. Please check your email.');
       }
     } catch (err) {
       console.error(err);
       setError('Server error. Please try again later.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -231,9 +66,11 @@ export default function Home() {
     <div style={styles.container}>
       <div style={styles.card}>
         <h2 style={styles.title}>Site Safety Login</h2>
+        <p style={styles.subtitle}>Capitol Aggregates Safety Training System</p>
+        
         <form onSubmit={handleSubmit} style={styles.form}>
           <div style={styles.formGroup}>
-            <label style={styles.label}>First Name</label>
+            <label style={styles.label}>First Name *</label>
             <input
               name="firstName"
               type="text"
@@ -241,11 +78,12 @@ export default function Home() {
               onChange={handleChange}
               style={styles.input}
               required
+              disabled={loading}
             />
           </div>
 
           <div style={styles.formGroup}>
-            <label style={styles.label}>Last Name</label>
+            <label style={styles.label}>Last Name *</label>
             <input
               name="lastName"
               type="text"
@@ -253,17 +91,19 @@ export default function Home() {
               onChange={handleChange}
               style={styles.input}
               required
+              disabled={loading}
             />
           </div>
 
           <div style={styles.formGroup}>
-            <label style={styles.label}>Plant</label>
+            <label style={styles.label}>Plant Location *</label>
             <select
               name="plant"
               value={formData.plant}
               onChange={handleChange}
               style={styles.input}
               required
+              disabled={loading}
             >
               <option value="">Select a plant</option>
               {plants.map((p) => (
@@ -275,7 +115,7 @@ export default function Home() {
           </div>
 
           <div style={styles.formGroup}>
-            <label style={styles.label}>Email</label>
+            <label style={styles.label}>Email *</label>
             <input
               name="email"
               type="email"
@@ -283,54 +123,42 @@ export default function Home() {
               onChange={handleChange}
               style={styles.input}
               required
+              disabled={loading}
             />
           </div>
 
           <div style={styles.formGroup}>
-            <label style={styles.label}>Phone</label>
+            <label style={styles.label}>Phone *</label>
             <input
               name="phone"
               type="tel"
               value={formData.phone}
               onChange={handleChange}
               style={styles.input}
+              placeholder="(555) 123-4567"
               required
+              disabled={loading}
             />
-          </div>
-
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Meeting With</label>
-            <select
-              name="meetingWith"
-              value={formData.meetingWith}
-              onChange={handleChange}
-              style={styles.input}
-            >
-              <option value="">Select a person (optional)</option>
-              {getMeetingOptions().map((person) => (
-                <option key={person} value={person}>
-                  {person}
-                </option>
-              ))}
-            </select>
           </div>
 
           {error && <p style={styles.error}>{error}</p>}
 
-          <button type="submit" style={styles.button}>
-            Site Specific Training
+          <button type="submit" style={styles.button} disabled={loading}>
+            {loading ? 'Checking...' : 'Continue'}
           </button>
         </form>
 
-        <button onClick={handleDirectSignIn} style={styles.directSignInButton}>
-          Sign In
-        </button>
+        <div style={styles.divider}>
+          <hr style={styles.hr} />
+          <span style={styles.dividerText}>Admin Access</span>
+          <hr style={styles.hr} />
+        </div>
 
-        <button onClick={handleSignOut} style={styles.signOutButton}>
-          Sign Out
-        </button>
-
-        <button onClick={() => navigate('/admin')} style={styles.adminButton}>
+        <button 
+          onClick={() => navigate('/admin')} 
+          style={styles.adminButton}
+          disabled={loading}
+        >
           Go to Admin Portal
         </button>
       </div>
@@ -343,8 +171,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    height: '100vh',
+    minHeight: '100vh',
     backgroundColor: '#f4f4f4',
+    padding: '1rem',
   },
   card: {
     backgroundColor: '#fff',
@@ -356,7 +185,14 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   title: {
     textAlign: 'center',
+    marginBottom: '0.5rem',
+    color: '#333',
+  },
+  subtitle: {
+    textAlign: 'center',
     marginBottom: '1.5rem',
+    color: '#666',
+    fontSize: '0.9rem',
   },
   form: {
     display: 'flex',
@@ -370,12 +206,14 @@ const styles: { [key: string]: React.CSSProperties } = {
   label: {
     marginBottom: 4,
     fontWeight: 500,
+    color: '#555',
   },
   input: {
     padding: '0.5rem',
     borderRadius: 6,
     border: '1px solid #ccc',
     fontSize: '1rem',
+    transition: 'border-color 0.2s',
   },
   button: {
     padding: '0.75rem',
@@ -387,45 +225,38 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 600,
     cursor: 'pointer',
     marginTop: '1rem',
+    transition: 'background-color 0.2s',
+  },
+  divider: {
+    display: 'flex',
+    alignItems: 'center',
+    margin: '1.5rem 0 1rem',
+  },
+  hr: {
+    flex: 1,
+    border: 'none',
+    borderTop: '1px solid #ddd',
+  },
+  dividerText: {
+    padding: '0 1rem',
+    color: '#999',
+    fontSize: '0.85rem',
   },
   adminButton: {
     padding: '0.75rem',
-    border: 'none',
+    border: '1px solid #28a745',
     borderRadius: 6,
-    backgroundColor: '#28a745',
-    color: '#fff',
+    backgroundColor: 'transparent',
+    color: '#28a745',
     fontSize: '1rem',
     fontWeight: 600,
     cursor: 'pointer',
-    marginTop: '1rem',
     width: '100%',
-  },
-  directSignInButton: {
-    padding: '0.75rem',
-    border: 'none',
-    borderRadius: 6,
-    backgroundColor: '#ffc107',
-    color: '#000',
-    fontSize: '1rem',
-    fontWeight: 600,
-    cursor: 'pointer',
-    marginTop: '1rem',
-    width: '100%',
-  },
-  signOutButton: {
-    padding: '0.75rem',
-    border: 'none',
-    borderRadius: 6,
-    backgroundColor: '#dc3545',
-    color: '#fff',
-    fontSize: '1rem',
-    fontWeight: 600,
-    cursor: 'pointer',
-    marginTop: '0.5rem',
-    width: '100%',
+    transition: 'all 0.2s',
   },
   error: {
-    color: 'red',
+    color: '#dc3545',
     fontSize: '0.9rem',
+    marginTop: '0.5rem',
   },
 };
