@@ -25,7 +25,7 @@ export function startScheduledJobs() {
           await sendOvertimeNotification({
             firstName: user.firstName,
             lastName: user.lastName,
-            plant: user.plant,
+            plant: user.plant || '',
             email: user.email,
             phone: user.phone,
             meetingWith: user.meetingWith || undefined,
