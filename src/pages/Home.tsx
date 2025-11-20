@@ -13,7 +13,6 @@ export default function Home() {
   });
 
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
 
   const plants = ['Cement', 'Delta', 'Hoban', 'Poteet', 'Rio Medina', 'Solms'];
 
@@ -30,35 +29,52 @@ export default function Home() {
       return;
     }
 
-    setLoading(true);
-    setError('');
-
     try {
-      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/check-user`, {
+      console.log('Sending data to backend:', formData);
+      console.log('API URL:', process.env.REACT_APP_API_URL || 'NOT SET - using default');
+      
+      const apiUrl = process.env.REACT_APP_API_URL || 'https://site-safety-login-cqc0f2fnh3h8bsay.centralus-01.azurewebsites.net';
+      const fullUrl = `${apiUrl}/api/check-user`;
+      console.log('Full URL:', fullUrl);
+
+      const res = await fetch(fullUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
 
-      const data = await res.json();
+      console.log('Response status:', res.status);
+      console.log('Response headers:', res.headers);
 
-      if (data.needsTraining) {
-        // User needs to complete training for this plant
-        navigate('/video', { state: formData });
+      // Get the response as text first to see what's actually being returned
+      const responseText = await res.text();
+      console.log('Raw response:', responseText);
+
+      if (!res.ok) {
+        console.error('Server error. Status:', res.status, 'Response:', responseText);
+        setError(`Server error (${res.status}): ${responseText}`);
+        return;
+      }
+
+      // Try to parse as JSON
+      let data;
+      try {
+        data = JSON.parse(responseText);
+        console.log('Parsed response data:', data);
+      } catch (parseError) {
+        console.error('Failed to parse response as JSON:', parseError);
+        setError('Invalid response from server');
+        return;
+      }
+
+      if (data.status === 'existing' && !data.needsTraining) {
+        navigate('/thank-you?existing=true');
       } else {
-        // User has already completed training for this plant
-        navigate('/thank-you?existing=true&trained=true', { 
-          state: { 
-            ...formData,
-            trainingRecord: data.trainingRecord 
-          } 
-        });
+        navigate('/video', { state: formData });
       }
     } catch (err) {
-      console.error(err);
-      setError('Server error. Please try again later.');
-    } finally {
-      setLoading(false);
+      console.error('Fetch error:', err);
+      setError('Network error. Please check your connection and try again.');
     }
   };
 
@@ -66,11 +82,9 @@ export default function Home() {
     <div style={styles.container}>
       <div style={styles.card}>
         <h2 style={styles.title}>Site Safety Login</h2>
-        <p style={styles.subtitle}>Capitol Aggregates Safety Training System</p>
-        
         <form onSubmit={handleSubmit} style={styles.form}>
           <div style={styles.formGroup}>
-            <label style={styles.label}>First Name *</label>
+            <label style={styles.label}>First Name</label>
             <input
               name="firstName"
               type="text"
@@ -78,12 +92,11 @@ export default function Home() {
               onChange={handleChange}
               style={styles.input}
               required
-              disabled={loading}
             />
           </div>
 
           <div style={styles.formGroup}>
-            <label style={styles.label}>Last Name *</label>
+            <label style={styles.label}>Last Name</label>
             <input
               name="lastName"
               type="text"
@@ -91,19 +104,17 @@ export default function Home() {
               onChange={handleChange}
               style={styles.input}
               required
-              disabled={loading}
             />
           </div>
 
           <div style={styles.formGroup}>
-            <label style={styles.label}>Plant Location *</label>
+            <label style={styles.label}>Plant</label>
             <select
               name="plant"
               value={formData.plant}
               onChange={handleChange}
               style={styles.input}
               required
-              disabled={loading}
             >
               <option value="">Select a plant</option>
               {plants.map((p) => (
@@ -115,7 +126,7 @@ export default function Home() {
           </div>
 
           <div style={styles.formGroup}>
-            <label style={styles.label}>Email *</label>
+            <label style={styles.label}>Email</label>
             <input
               name="email"
               type="email"
@@ -123,42 +134,34 @@ export default function Home() {
               onChange={handleChange}
               style={styles.input}
               required
-              disabled={loading}
             />
           </div>
 
           <div style={styles.formGroup}>
-            <label style={styles.label}>Phone *</label>
+            <label style={styles.label}>Phone</label>
             <input
               name="phone"
               type="tel"
               value={formData.phone}
               onChange={handleChange}
               style={styles.input}
-              placeholder="(555) 123-4567"
               required
-              disabled={loading}
             />
           </div>
 
-          {error && <p style={styles.error}>{error}</p>}
+          {error && (
+            <div style={styles.errorBox}>
+              <p style={styles.error}>{error}</p>
+              <p style={styles.errorHint}>Check the browser console for more details</p>
+            </div>
+          )}
 
-          <button type="submit" style={styles.button} disabled={loading}>
-            {loading ? 'Checking...' : 'Continue'}
+          <button type="submit" style={styles.button}>
+            Continue
           </button>
         </form>
 
-        <div style={styles.divider}>
-          <hr style={styles.hr} />
-          <span style={styles.dividerText}>Admin Access</span>
-          <hr style={styles.hr} />
-        </div>
-
-        <button 
-          onClick={() => navigate('/admin')} 
-          style={styles.adminButton}
-          disabled={loading}
-        >
+        <button onClick={() => navigate('/admin')} style={styles.adminButton}>
           Go to Admin Portal
         </button>
       </div>
@@ -171,9 +174,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    minHeight: '100vh',
+    height: '100vh',
     backgroundColor: '#f4f4f4',
-    padding: '1rem',
   },
   card: {
     backgroundColor: '#fff',
@@ -185,14 +187,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   title: {
     textAlign: 'center',
-    marginBottom: '0.5rem',
-    color: '#333',
-  },
-  subtitle: {
-    textAlign: 'center',
     marginBottom: '1.5rem',
-    color: '#666',
-    fontSize: '0.9rem',
   },
   form: {
     display: 'flex',
@@ -206,14 +201,12 @@ const styles: { [key: string]: React.CSSProperties } = {
   label: {
     marginBottom: 4,
     fontWeight: 500,
-    color: '#555',
   },
   input: {
     padding: '0.5rem',
     borderRadius: 6,
     border: '1px solid #ccc',
     fontSize: '1rem',
-    transition: 'border-color 0.2s',
   },
   button: {
     padding: '0.75rem',
@@ -225,38 +218,33 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 600,
     cursor: 'pointer',
     marginTop: '1rem',
-    transition: 'background-color 0.2s',
-  },
-  divider: {
-    display: 'flex',
-    alignItems: 'center',
-    margin: '1.5rem 0 1rem',
-  },
-  hr: {
-    flex: 1,
-    border: 'none',
-    borderTop: '1px solid #ddd',
-  },
-  dividerText: {
-    padding: '0 1rem',
-    color: '#999',
-    fontSize: '0.85rem',
   },
   adminButton: {
     padding: '0.75rem',
-    border: '1px solid #28a745',
+    border: 'none',
     borderRadius: 6,
-    backgroundColor: 'transparent',
-    color: '#28a745',
+    backgroundColor: '#28a745',
+    color: '#fff',
     fontSize: '1rem',
     fontWeight: 600,
     cursor: 'pointer',
+    marginTop: '1rem',
     width: '100%',
-    transition: 'all 0.2s',
   },
   error: {
-    color: '#dc3545',
+    color: 'red',
     fontSize: '0.9rem',
-    marginTop: '0.5rem',
+    margin: 0,
+  },
+  errorBox: {
+    backgroundColor: '#ffebee',
+    border: '1px solid #ffcdd2',
+    borderRadius: 4,
+    padding: '0.5rem',
+  },
+  errorHint: {
+    color: '#666',
+    fontSize: '0.8rem',
+    margin: '4px 0 0 0',
   },
 };
