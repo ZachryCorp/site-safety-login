@@ -16,12 +16,11 @@ app.get('/api/test', (req, res) => {
 });
 // API route to check if user exists and needs training
 app.post('/api/check-user', async (req, res) => {
-    const { firstName, lastName, plant, email, phone } = req.body;
+    const { firstName, lastName, plant, email, phone, meetingWith } = req.body;
     if (!firstName || !lastName || !plant || !email || !phone) {
         return res.status(400).json({ message: 'Missing fields' });
     }
     try {
-        // Check if user has completed training for this specific plant
         const existingTraining = await prisma.user.findFirst({
             where: {
                 email,
@@ -29,11 +28,9 @@ app.post('/api/check-user', async (req, res) => {
             },
         });
         if (existingTraining) {
-            // User already trained for this plant - just sign them in
             return res.json({ status: 'existing', user: existingTraining });
         }
         else {
-            // User needs training for this plant
             return res.json({ status: 'new' });
         }
     }
@@ -44,12 +41,11 @@ app.post('/api/check-user', async (req, res) => {
 });
 // API route to submit quiz and complete training
 app.post('/api/submit-quiz', async (req, res) => {
-    const { firstName, lastName, plant, email, phone } = req.body;
+    const { firstName, lastName, plant, email, phone, meetingWith } = req.body;
     if (!firstName || !lastName || !plant || !email || !phone) {
         return res.status(400).json({ message: 'Missing fields' });
     }
     try {
-        // Create training record
         const user = await prisma.user.create({
             data: {
                 firstName,
@@ -57,7 +53,23 @@ app.post('/api/submit-quiz', async (req, res) => {
                 plant,
                 email,
                 phone,
+                meetingWith: meetingWith || null,
             },
+        });
+        return res.json({ status: 'success', user });
+    }
+    catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Server error' });
+    }
+});
+// API route to sign out a user
+app.post('/api/sign-out/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const user = await prisma.user.update({
+            where: { id: parseInt(id) },
+            data: { signedOutAt: new Date() },
         });
         return res.json({ status: 'success', user });
     }
