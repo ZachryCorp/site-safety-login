@@ -33,7 +33,7 @@ export default function Home() {
       console.log('Sending data to backend:', formData);
       console.log('API URL:', process.env.REACT_APP_API_URL || 'NOT SET - using default');
       
-      const apiUrl = process.env.REACT_APP_API_URL || 'https://site-safety-login-cqc0f2fnh3h8bsay.centralus-01.azurewebsites.net';
+      const apiUrl = process.env.REACT_APP_API_URL || 'https://site-safety-login-linux-bmg9dff8a9g6ahej.centralus-01.azurewebsites.net';
       const fullUrl = `${apiUrl}/api/check-user`;
       console.log('Full URL:', fullUrl);
 
