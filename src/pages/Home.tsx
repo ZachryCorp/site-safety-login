@@ -10,71 +10,128 @@ export default function Home() {
     plant: '',
     email: '',
     phone: '',
+    meetingWith: '',
   });
 
   const [error, setError] = useState('');
 
   const plants = ['Cement', 'Delta', 'Hoban', 'Poteet', 'Rio Medina', 'Solms'];
 
+  const cementMeetingOptions = [
+    'Brittney Hill - Jr. Process Engineer',
+    'Alexis Navarro - HR Generalist',
+    'Adam Ybarra - Safety Manager',
+    'William Aiken - QC Supervisor',
+    'Robert Alvarado - Maintenance Supervisor',
+    'Julio Avila - Sr. Process Engineer',
+    'Ben Caccamo - Engineer',
+    'Michael Castillo - Warehouse Supervisor',
+    'Jose Cedeno - Reliability Engineer',
+    'Diane Christensen - Procurement Manager',
+    'Daniel Davis - Shift Supervisor',
+    'James Davis - Electrical Supervisor',
+    'Eric Ervin - VP Cement',
+    'Jesse Gallegos - Shipping Lead',
+    'Keith Gilson - Shift Supervisor',
+    'Jose Gonzalez - Maintenance Engineer',
+    'Craig Hernandez - Sr. Production Supervisor',
+    'Joseph Hernandez - Yard Manager',
+    'Richard Jarzombek - Engineering Manager',
+    'Eric Kottke - Production Manager',
+    'Mario Lira - Automation Engineer',
+    'Zach McMahon - Environmental Engineer',
+    'Raul Molina - Maintenance Manager',
+    'Ramon Rivera - Shift Supervisor',
+    'Victor Saucedo - Maintenance Engineer',
+    'Jason Stehle - Heavy Equipment Supervisor',
+    'Derek Thorington - Plant Manager',
+    'Jagger Tiemann - Engineer Tech',
+    'Arnie Tovar - Electrical Manager',
+    'Mason Vanderweele - Environmental Engineer',
+    'Tony Ward - Shift Supervisor',
+    'Hernan Williams - Automation Engineer',
+    'Scott Wolston - Director Distribution',
+  ];
+
+  const allPlantsMeetingOptions = [
+    'Adam Ybarra',
+    'Jacob Ackerman',
+    'William Aiken',
+    'Robert Allison',
+    'Robert Alvarado',
+    'Julio Avila',
+    'Benjamin Caccamo',
+    'Michael Castillo',
+    'Jose Cedeno',
+    'Diane Christensen',
+    'Daniel Davis',
+    'James Davis',
+    'Eric Ervin',
+    'Jesse Gallegos',
+    'Keith Gilson',
+    'Jose Gonzalez',
+    'Craig Hernandez',
+    'Joseph Hernandez',
+    'Richard Jarzombek',
+    'Erik Kottke',
+    'Mario Lira',
+    'Zachary McMahon',
+    'Raul Molina',
+    'Ramon Riviera',
+    'Jason Stehle',
+    'Derek E. Thorington',
+    'Jagger Tieman',
+    'Arnie Tovar',
+    'Mason Vanderweele',
+    'Tony Ward',
+    'Mike Watson',
+    'Hernan Williams',
+    'Scott Wolston',
+  ];
+
+  const getMeetingOptions = () => {
+    return formData.plant === 'Cement' ? cementMeetingOptions : allPlantsMeetingOptions;
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    if (name === 'plant' && value !== formData.plant) {
+      setFormData((prev) => ({ ...prev, plant: value, meetingWith: '' }));
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { firstName, lastName, plant, email, phone } = formData;
+    const { firstName, lastName, plant, email, phone, meetingWith } = formData;
 
-    if (!firstName || !lastName || !plant || !email || !phone) {
+    if (!firstName || !lastName || !plant || !email || !phone || !meetingWith) {
       setError('All fields are required.');
       return;
     }
 
     try {
-      console.log('Sending data to backend:', formData);
-      console.log('API URL:', process.env.REACT_APP_API_URL || 'NOT SET - using default');
-      
-      const apiUrl = process.env.REACT_APP_API_URL || 'https://site-safety-login-linux-bmg9dff8a9g6ahej.centralus-01.azurewebsites.net';
-      const fullUrl = `${apiUrl}/api/check-user`;
-      console.log('Full URL:', fullUrl);
-
-      const res = await fetch(fullUrl, {
+      const apiUrl =
+        process.env.REACT_APP_API_URL ||
+        'https://site-safety-login-linux-bmg9dff8a9g6ahej.centralus-01.azurewebsites.net';
+      const res = await fetch(`${apiUrl}/api/check-user`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
 
-      console.log('Response status:', res.status);
-      console.log('Response headers:', res.headers);
+      const data = await res.json();
 
-      // Get the response as text first to see what's actually being returned
-      const responseText = await res.text();
-      console.log('Raw response:', responseText);
-
-      if (!res.ok) {
-        console.error('Server error. Status:', res.status, 'Response:', responseText);
-        setError(`Server error (${res.status}): ${responseText}`);
-        return;
-      }
-
-      // Try to parse as JSON
-      let data;
-      try {
-        data = JSON.parse(responseText);
-        console.log('Parsed response data:', data);
-      } catch (parseError) {
-        console.error('Failed to parse response as JSON:', parseError);
-        setError('Invalid response from server');
-        return;
-      }
-
-      if (data.status === 'existing' && !data.needsTraining) {
+      if (data.status === 'existing') {
         navigate('/thank-you?existing=true');
       } else {
         navigate('/video', { state: formData });
       }
     } catch (err) {
-      console.error('Fetch error:', err);
-      setError('Network error. Please check your connection and try again.');
+      console.error(err);
+      setError('Server error. Please try again later.');
     }
   };
 
@@ -125,6 +182,26 @@ export default function Home() {
             </select>
           </div>
 
+          {formData.plant && (
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Meeting With</label>
+              <select
+                name="meetingWith"
+                value={formData.meetingWith}
+                onChange={handleChange}
+                style={styles.input}
+                required
+              >
+                <option value="">Select a person</option>
+                {getMeetingOptions().map((person) => (
+                  <option key={person} value={person}>
+                    {person}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div style={styles.formGroup}>
             <label style={styles.label}>Email</label>
             <input
@@ -149,12 +226,7 @@ export default function Home() {
             />
           </div>
 
-          {error && (
-            <div style={styles.errorBox}>
-              <p style={styles.error}>{error}</p>
-              <p style={styles.errorHint}>Check the browser console for more details</p>
-            </div>
-          )}
+          {error && <p style={styles.error}>{error}</p>}
 
           <button type="submit" style={styles.button}>
             Continue
@@ -234,17 +306,5 @@ const styles: { [key: string]: React.CSSProperties } = {
   error: {
     color: 'red',
     fontSize: '0.9rem',
-    margin: 0,
-  },
-  errorBox: {
-    backgroundColor: '#ffebee',
-    border: '1px solid #ffcdd2',
-    borderRadius: 4,
-    padding: '0.5rem',
-  },
-  errorHint: {
-    color: '#666',
-    fontSize: '0.8rem',
-    margin: '4px 0 0 0',
   },
 };
