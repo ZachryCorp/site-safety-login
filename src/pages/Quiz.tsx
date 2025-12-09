@@ -6,184 +6,174 @@ const Quiz: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { firstName, lastName, plant, email } = location.state || {};
+  const { firstName, lastName, plant, email, phone } = location.state || {};
+
   const [answers, setAnswers] = useState<Record<string, boolean>>({});
-  const [submitted, setSubmitted] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [showResults, setShowResults] = useState(false);
-  const [score, setScore] = useState(0);
+  const [error, setError] = useState('');
 
-  const questions = [
-    { id: 'q1', text: 'Signing In and Out of mine site is mandatory.', correct: true },
-    { id: 'q2', text: 'Mining equipment always has the right of way; never assume mining equipment can see you.', correct: true },
-    { id: 'q3', text: 'It\'s ok to park in blind spots as long as it\'s only for a short period of time.', correct: false },
-    { id: 'q4', text: 'Drive according to road conditions and obey all traffic signs.', correct: true },
-    { id: 'q5', text: 'Hard Hat, Safety Glasses, Reflective Clothing and Safety Toe Boots are always required when on mine site.', correct: true },
-    { id: 'q6', text: 'Face shields and guards on a handheld grinder are not required when using a handheld grinder?', correct: false },
-    { id: 'q7', text: 'Fall Protection is required anytime there is a danger of falling.', correct: true },
-    { id: 'q8', text: 'Pre-Shift Inspections and Workplace Examinations must be completed prior to operating equipment or working on task.', correct: true },
-    { id: 'q9', text: 'Park Brakes and Chock Blocks are not required if I get out of my piece of equipment for less than 5 minutes.', correct: false },
-    { id: 'q10', text: 'Implements such as outriggers, buckets, moboard, rippers, excavator boom, must be lowered to the ground before getting out of equipment.', correct: true },
-  ];
-
-  const handleChange = (questionId: string, value: boolean) => {
-    setAnswers(prev => ({ ...prev, [questionId]: value }));
+  const correctAnswers: Record<string, boolean> = {
+    q1: true,
+    q2: true,
+    q3: false,
+    q4: true,
+    q5: true,
+    q6: false,
+    q7: true,
+    q8: true,
+    q9: false,
+    q10: true,
   };
 
-  const calculateScore = () => {
-    let correct = 0;
-    questions.forEach(q => {
-      if (answers[q.id] === q.correct) {
-        correct++;
-      }
-    });
-    return Math.round((correct / questions.length) * 100);
+  const handleChange = (question: string, value: boolean) => {
+    setAnswers(prev => ({ ...prev, [question]: value }));
   };
+
+  const allCorrect =
+    Object.keys(correctAnswers).length === Object.keys(answers).length &&
+    Object.keys(correctAnswers).every(q => answers[q] === correctAnswers[q]);
 
   const handleSubmit = async () => {
-    if (Object.keys(answers).length !== questions.length) {
-      alert('Please answer all questions before submitting.');
-      return;
-    }
-
-    setSubmitted(true);
-    setLoading(true);
-    
-    const quizScore = calculateScore();
-    setScore(quizScore);
-
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/submit-quiz`, {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/submit-quiz`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          email, 
-          plant,
-          score: quizScore
-        }),
+        body: JSON.stringify({ firstName, lastName, plant, email, phone, score: 100 }),
       });
 
-      const data = await response.json();
-      
-      if (data.passed) {
-        // Quiz passed - redirect to thank you
-        navigate('/thank-you', { 
-          state: { 
-            passed: true,
-            score: quizScore,
-            firstName,
-            lastName,
-            plant
-          } 
-        });
+      const data = await res.json();
+
+      if (data.status === 'success') {
+        navigate('/thank-you');
       } else {
-        // Quiz failed - show results
-        setShowResults(true);
+        setError('Failed to submit quiz. Please try again.');
       }
     } catch (err) {
       console.error('Failed to submit quiz:', err);
-      alert('Error submitting quiz. Please try again.');
-    } finally {
-      setLoading(false);
+      setError('Server error. Please try again.');
     }
   };
-
-  const handleRetry = () => {
-    setAnswers({});
-    setSubmitted(false);
-    setShowResults(false);
-    setScore(0);
-  };
-
-  if (showResults) {
-    return (
-      <div style={styles.container}>
-        <div style={styles.card}>
-          <h2 style={styles.title}>Quiz Results</h2>
-          <div style={styles.resultsBox}>
-            <p style={styles.scoreText}>Your Score: {score}%</p>
-            <p style={styles.failText}>
-              You need 100% to pass the safety quiz.
-            </p>
-            <p>Review the questions you missed:</p>
-            <ul style={styles.incorrectList}>
-              {questions.filter(q => answers[q.id] !== q.correct).map(q => (
-                <li key={q.id}>
-                  Question {q.id.substring(1)}: {q.text}
-                  <br />
-                  <span style={styles.correctAnswer}>
-                    Correct answer: {q.correct ? 'True' : 'False'}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <button onClick={handleRetry} style={styles.retryButton}>
-            Retake Quiz
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <h2 style={styles.title}>Safety Training Quiz</h2>
-        <p style={styles.subtitle}>
-          {plant} Plant - {firstName} {lastName}
-        </p>
-        <p style={styles.instructions}>
-          Answer all questions correctly to complete your training.
-        </p>
+        <h2 style={styles.title}>{plant} Safety Quiz</h2>
+        <p style={styles.subtitle}>You must answer all questions correctly to proceed.</p>
 
-        <div style={styles.questionsContainer}>
-          {questions.map((q, index) => (
-            <div key={q.id} style={styles.question}>
-              <p style={styles.questionText}>
-                <strong>{index + 1}.</strong> {q.text}
-              </p>
-              <div style={styles.options}>
-                <label style={styles.radioLabel}>
-                  <input 
-                    type="radio" 
-                    name={q.id}
-                    checked={answers[q.id] === true}
-                    onChange={() => handleChange(q.id, true)}
-                    disabled={submitted}
-                  />
-                  <span>True</span>
-                </label>
-                <label style={styles.radioLabel}>
-                  <input 
-                    type="radio" 
-                    name={q.id}
-                    checked={answers[q.id] === false}
-                    onChange={() => handleChange(q.id, false)}
-                    disabled={submitted}
-                  />
-                  <span>False</span>
-                </label>
-              </div>
-            </div>
-          ))}
+        <div style={styles.questions}>
+          <div style={styles.question}>
+            <p>1. Signing In and Out of mine site is mandatory.</p>
+            <label style={styles.option}>
+              <input type="radio" name="q1" onChange={() => handleChange('q1', true)} /> True
+            </label>
+            <label style={styles.option}>
+              <input type="radio" name="q1" onChange={() => handleChange('q1', false)} /> False
+            </label>
+          </div>
+
+          <div style={styles.question}>
+            <p>2. Mining equipment always has the right of way; never assume mining equipment can see you.</p>
+            <label style={styles.option}>
+              <input type="radio" name="q2" onChange={() => handleChange('q2', true)} /> True
+            </label>
+            <label style={styles.option}>
+              <input type="radio" name="q2" onChange={() => handleChange('q2', false)} /> False
+            </label>
+          </div>
+
+          <div style={styles.question}>
+            <p>3. It's ok to park in blind spots as long as it's only for a short period of time.</p>
+            <label style={styles.option}>
+              <input type="radio" name="q3" onChange={() => handleChange('q3', true)} /> True
+            </label>
+            <label style={styles.option}>
+              <input type="radio" name="q3" onChange={() => handleChange('q3', false)} /> False
+            </label>
+          </div>
+
+          <div style={styles.question}>
+            <p>4. Drive according to road conditions and obey all traffic signs.</p>
+            <label style={styles.option}>
+              <input type="radio" name="q4" onChange={() => handleChange('q4', true)} /> True
+            </label>
+            <label style={styles.option}>
+              <input type="radio" name="q4" onChange={() => handleChange('q4', false)} /> False
+            </label>
+          </div>
+
+          <div style={styles.question}>
+            <p>5. Hard Hat, Safety Glasses, Reflective Clothing and Safety Toe Boots are always required when on mine site.</p>
+            <label style={styles.option}>
+              <input type="radio" name="q5" onChange={() => handleChange('q5', true)} /> True
+            </label>
+            <label style={styles.option}>
+              <input type="radio" name="q5" onChange={() => handleChange('q5', false)} /> False
+            </label>
+          </div>
+
+          <div style={styles.question}>
+            <p>6. Face shields and guards on a handheld grinder are not required when using a handheld grinder?</p>
+            <label style={styles.option}>
+              <input type="radio" name="q6" onChange={() => handleChange('q6', true)} /> True
+            </label>
+            <label style={styles.option}>
+              <input type="radio" name="q6" onChange={() => handleChange('q6', false)} /> False
+            </label>
+          </div>
+
+          <div style={styles.question}>
+            <p>7. Fall Protection is required anytime there is a danger of falling.</p>
+            <label style={styles.option}>
+              <input type="radio" name="q7" onChange={() => handleChange('q7', true)} /> True
+            </label>
+            <label style={styles.option}>
+              <input type="radio" name="q7" onChange={() => handleChange('q7', false)} /> False
+            </label>
+          </div>
+
+          <div style={styles.question}>
+            <p>8. Pre-Shift Inspections and Workplace Examinations must be completed prior to operating equipment or working on task.</p>
+            <label style={styles.option}>
+              <input type="radio" name="q8" onChange={() => handleChange('q8', true)} /> True
+            </label>
+            <label style={styles.option}>
+              <input type="radio" name="q8" onChange={() => handleChange('q8', false)} /> False
+            </label>
+          </div>
+
+          <div style={styles.question}>
+            <p>9. Park Brakes and Chock Blocks are not required if I get out of my piece of equipment for less than 5 minutes.</p>
+            <label style={styles.option}>
+              <input type="radio" name="q9" onChange={() => handleChange('q9', true)} /> True
+            </label>
+            <label style={styles.option}>
+              <input type="radio" name="q9" onChange={() => handleChange('q9', false)} /> False
+            </label>
+          </div>
+
+          <div style={styles.question}>
+            <p>10. Implements such as outriggers, buckets, moboard, rippers, excavator boom, must be lowered to the ground before getting out of equipment.</p>
+            <label style={styles.option}>
+              <input type="radio" name="q10" onChange={() => handleChange('q10', true)} /> True
+            </label>
+            <label style={styles.option}>
+              <input type="radio" name="q10" onChange={() => handleChange('q10', false)} /> False
+            </label>
+          </div>
         </div>
 
-        <div style={styles.progressIndicator}>
-          {Object.keys(answers).length} of {questions.length} questions answered
-        </div>
+        {error && <p style={styles.error}>{error}</p>}
 
-        <button 
-          onClick={handleSubmit} 
-          style={{
-            ...styles.button,
-            backgroundColor: Object.keys(answers).length === questions.length ? '#007bff' : '#6c757d',
-            cursor: Object.keys(answers).length === questions.length ? 'pointer' : 'not-allowed'
-          }}
-          disabled={submitted || loading || Object.keys(answers).length !== questions.length}
-        >
-          {loading ? 'Submitting...' : 'Submit Quiz'}
+        <button onClick={handleSubmit} disabled={!allCorrect} style={{
+          ...styles.button,
+          backgroundColor: allCorrect ? '#28a745' : '#ccc',
+          cursor: allCorrect ? 'pointer' : 'not-allowed',
+        }}>
+          Submit Quiz
         </button>
+
+        {!allCorrect && Object.keys(answers).length === 10 && (
+          <p style={styles.warning}>Some answers are incorrect. Please review and try again.</p>
+        )}
       </div>
     </div>
   );
@@ -193,10 +183,10 @@ const styles: { [key: string]: React.CSSProperties } = {
   container: {
     display: 'flex',
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     minHeight: '100vh',
     backgroundColor: '#f4f4f4',
-    padding: '1rem',
+    padding: '2rem 1rem',
   },
   card: {
     backgroundColor: '#fff',
@@ -204,99 +194,51 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: 12,
     boxShadow: '0 0 10px rgba(0,0,0,0.1)',
     width: '100%',
-    maxWidth: 800,
+    maxWidth: 700,
   },
   title: {
     textAlign: 'center',
     marginBottom: '0.5rem',
-    color: '#333',
   },
   subtitle: {
     textAlign: 'center',
-    marginBottom: '0.5rem',
     color: '#666',
-  },
-  instructions: {
-    textAlign: 'center',
-    marginBottom: '2rem',
-    color: '#dc3545',
-    fontWeight: 500,
-  },
-  questionsContainer: {
     marginBottom: '1.5rem',
   },
+  questions: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1rem',
+  },
   question: {
-    backgroundColor: '#f8f9fa',
     padding: '1rem',
+    backgroundColor: '#f9f9f9',
     borderRadius: 8,
-    marginBottom: '1rem',
   },
-  questionText: {
-    marginBottom: '0.75rem',
-    lineHeight: 1.5,
-  },
-  options: {
-    display: 'flex',
-    gap: '2rem',
-  },
-  radioLabel: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
+  option: {
+    marginRight: '1.5rem',
     cursor: 'pointer',
   },
-  progressIndicator: {
-    textAlign: 'center',
-    marginBottom: '1rem',
-    color: '#666',
-    fontSize: '0.9rem',
-  },
   button: {
-    width: '100%',
     padding: '0.75rem',
     border: 'none',
     borderRadius: 6,
     color: '#fff',
     fontSize: '1rem',
     fontWeight: 600,
-    transition: 'background-color 0.2s',
+    marginTop: '1.5rem',
+    width: '100%',
   },
-  resultsBox: {
-    backgroundColor: '#f8f9fa',
-    padding: '1.5rem',
-    borderRadius: 8,
-    marginBottom: '1.5rem',
-  },
-  scoreText: {
-    fontSize: '1.5rem',
-    fontWeight: 'bold',
+  error: {
+    color: 'red',
     textAlign: 'center',
-    marginBottom: '1rem',
+    marginTop: '1rem',
   },
-  failText: {
+  warning: {
     color: '#dc3545',
     textAlign: 'center',
-    marginBottom: '1rem',
-  },
-  incorrectList: {
     marginTop: '1rem',
-    paddingLeft: '1.5rem',
-  },
-  correctAnswer: {
-    color: '#28a745',
-    fontSize: '0.9rem',
-    fontStyle: 'italic',
-  },
-  retryButton: {
-    width: '100%',
-    padding: '0.75rem',
-    border: 'none',
-    borderRadius: 6,
-    backgroundColor: '#ffc107',
-    color: '#000',
-    fontSize: '1rem',
-    fontWeight: 600,
-    cursor: 'pointer',
+    fontWeight: 500,
   },
 };
 
