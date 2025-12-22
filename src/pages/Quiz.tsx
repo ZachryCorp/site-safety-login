@@ -1,197 +1,247 @@
-import express, { Request, Response } from 'express';
-import cors from 'cors';
-import { PrismaClient } from '@prisma/client';
+// src/pages/Quiz.tsx
+import React, { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
-const prisma = new PrismaClient();
-const app = express();
+const Quiz: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
 
-app.use(cors());
-app.use(express.json());
+  const { firstName, lastName, company, plant, email, phone, meetingWith } = location.state || {};
 
-// Health check endpoint
-app.get('/api/test', (req: Request, res: Response) => {
-  res.json({ message: 'Backend is running', timestamp: new Date().toISOString() });
-});
+  const [answers, setAnswers] = useState<Record<string, boolean>>({});
+  const [error, setError] = useState('');
 
-// API route to check user status (training + on-site status)
-app.post('/api/check-user-status', async (req: Request, res: Response) => {
-  const { email, plant } = req.body;
+  const correctAnswers: Record<string, boolean> = {
+    q1: true,
+    q2: true,
+    q3: false,
+    q4: true,
+    q5: true,
+    q6: false,
+    q7: true,
+    q8: true,
+    q9: false,
+    q10: true,
+  };
 
-  if (!email || !plant) {
-    return res.status(400).json({ message: 'Missing fields' });
-  }
+  const handleChange = (question: string, value: boolean) => {
+    setAnswers(prev => ({ ...prev, [question]: value }));
+  };
 
-  try {
-    // Check if user has completed training for this plant
-    const hasTraining = await prisma.user.findFirst({
-      where: {
-        email,
-        plant,
-        trainingCompleted: true,
-      },
-    });
+  const allCorrect =
+    Object.keys(correctAnswers).length === Object.keys(answers).length &&
+    Object.keys(correctAnswers).every(q => answers[q] === correctAnswers[q]);
 
-    if (!hasTraining) {
-      return res.json({ status: 'needs-training' });
+  const handleSubmit = async () => {
+    try {
+      const apiUrl = process.env.REACT_APP_API_URL || 'https://site-safety-login-linux-bmg9dff8a9g6ahej.centralus-01.azurewebsites.net';
+      
+      const res = await fetch(`${apiUrl}/api/submit-quiz`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ firstName, lastName, company, plant, email, phone, meetingWith }),
+      });
+
+      const data = await res.json();
+
+      if (data.status === 'success') {
+        navigate('/thank-you', { state: { certificate: data.certificate } });
+      } else {
+        setError('Failed to submit quiz. Please try again.');
+      }
+    } catch (err) {
+      console.error('Failed to submit quiz:', err);
+      setError('Server error. Please try again.');
     }
+  };
 
-    // Check if user is currently on site (signed in but not signed out)
-    const onSite = await prisma.user.findFirst({
-      where: {
-        email,
-        plant,
-        signedOutAt: null,
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+  return (
+    <div style={styles.container}>
+      <div style={styles.card}>
+        <h2 style={styles.title}>{plant} Safety Quiz</h2>
+        <p style={styles.subtitle}>You must answer all questions correctly to proceed.</p>
 
-    if (onSite) {
-      return res.json({ status: 'on-site', visitorId: onSite.id });
-    }
+        <div style={styles.questions}>
+          <div style={styles.question}>
+            <p>1. Signing In and Out of mine site is mandatory.</p>
+            <label style={styles.option}>
+              <input type="radio" name="q1" onChange={() => handleChange('q1', true)} /> True
+            </label>
+            <label style={styles.option}>
+              <input type="radio" name="q1" onChange={() => handleChange('q1', false)} /> False
+            </label>
+          </div>
 
-    return res.json({ status: 'off-site' });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: 'Server error' });
-  }
-});
+          <div style={styles.question}>
+            <p>2. Mining equipment always has the right of way; never assume mining equipment can see you.</p>
+            <label style={styles.option}>
+              <input type="radio" name="q2" onChange={() => handleChange('q2', true)} /> True
+            </label>
+            <label style={styles.option}>
+              <input type="radio" name="q2" onChange={() => handleChange('q2', false)} /> False
+            </label>
+          </div>
 
-// API route to check if user exists and needs training
-app.post('/api/check-user', async (req: Request, res: Response) => {
-  const { firstName, lastName, plant, email, phone, meetingWith } = req.body;
+          <div style={styles.question}>
+            <p>3. It's ok to park in blind spots as long as it's only for a short period of time.</p>
+            <label style={styles.option}>
+              <input type="radio" name="q3" onChange={() => handleChange('q3', true)} /> True
+            </label>
+            <label style={styles.option}>
+              <input type="radio" name="q3" onChange={() => handleChange('q3', false)} /> False
+            </label>
+          </div>
 
-  if (!firstName || !lastName || !plant || !email || !phone) {
-    return res.status(400).json({ message: 'Missing fields' });
-  }
+          <div style={styles.question}>
+            <p>4. Drive according to road conditions and obey all traffic signs.</p>
+            <label style={styles.option}>
+              <input type="radio" name="q4" onChange={() => handleChange('q4', true)} /> True
+            </label>
+            <label style={styles.option}>
+              <input type="radio" name="q4" onChange={() => handleChange('q4', false)} /> False
+            </label>
+          </div>
 
-  try {
-    const existingTraining = await prisma.user.findFirst({
-      where: {
-        email,
-        plant,
-        trainingCompleted: true,
-      },
-    });
+          <div style={styles.question}>
+            <p>5. Hard Hat, Safety Glasses, Reflective Clothing and Safety Toe Boots are always required when on mine site.</p>
+            <label style={styles.option}>
+              <input type="radio" name="q5" onChange={() => handleChange('q5', true)} /> True
+            </label>
+            <label style={styles.option}>
+              <input type="radio" name="q5" onChange={() => handleChange('q5', false)} /> False
+            </label>
+          </div>
 
-    if (existingTraining) {
-      return res.json({ status: 'existing', user: existingTraining });
-    } else {
-      return res.json({ status: 'new' });
-    }
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: 'Server error' });
-  }
-});
+          <div style={styles.question}>
+            <p>6. Face shields and guards on a handheld grinder are not required when using a handheld grinder?</p>
+            <label style={styles.option}>
+              <input type="radio" name="q6" onChange={() => handleChange('q6', true)} /> True
+            </label>
+            <label style={styles.option}>
+              <input type="radio" name="q6" onChange={() => handleChange('q6', false)} /> False
+            </label>
+          </div>
 
-// API route for signing in (no training)
-app.post('/api/sign-in', async (req: Request, res: Response) => {
-  const { firstName, lastName, company, plant, email, phone, meetingWith } = req.body;
+          <div style={styles.question}>
+            <p>7. Fall Protection is required anytime there is a danger of falling.</p>
+            <label style={styles.option}>
+              <input type="radio" name="q7" onChange={() => handleChange('q7', true)} /> True
+            </label>
+            <label style={styles.option}>
+              <input type="radio" name="q7" onChange={() => handleChange('q7', false)} /> False
+            </label>
+          </div>
 
-  if (!firstName || !lastName || !plant || !email || !phone) {
-    return res.status(400).json({ message: 'Missing fields' });
-  }
+          <div style={styles.question}>
+            <p>8. Pre-Shift Inspections and Workplace Examinations must be completed prior to operating equipment or working on task.</p>
+            <label style={styles.option}>
+              <input type="radio" name="q8" onChange={() => handleChange('q8', true)} /> True
+            </label>
+            <label style={styles.option}>
+              <input type="radio" name="q8" onChange={() => handleChange('q8', false)} /> False
+            </label>
+          </div>
 
-  try {
-    const user = await prisma.user.create({
-      data: {
-        firstName,
-        lastName,
-        company: company || null,
-        plant,
-        email,
-        phone,
-        meetingWith: meetingWith || null,
-        trainingCompleted: false,
-      },
-    });
+          <div style={styles.question}>
+            <p>9. Park Brakes and Chock Blocks are not required if I get out of my piece of equipment for less than 5 minutes.</p>
+            <label style={styles.option}>
+              <input type="radio" name="q9" onChange={() => handleChange('q9', true)} /> True
+            </label>
+            <label style={styles.option}>
+              <input type="radio" name="q9" onChange={() => handleChange('q9', false)} /> False
+            </label>
+          </div>
 
-    return res.json({ status: 'success', user });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: 'Server error' });
-  }
-});
+          <div style={styles.question}>
+            <p>10. Implements such as outriggers, buckets, moboard, rippers, excavator boom, must be lowered to the ground before getting out of equipment.</p>
+            <label style={styles.option}>
+              <input type="radio" name="q10" onChange={() => handleChange('q10', true)} /> True
+            </label>
+            <label style={styles.option}>
+              <input type="radio" name="q10" onChange={() => handleChange('q10', false)} /> False
+            </label>
+          </div>
+        </div>
 
-// API route to submit quiz and complete training
-app.post('/api/submit-quiz', async (req: Request, res: Response) => {
-  const { firstName, lastName, company, plant, email, phone, meetingWith } = req.body;
+        {error && <p style={styles.error}>{error}</p>}
 
-  if (!firstName || !lastName || !plant || !email || !phone) {
-    return res.status(400).json({ message: 'Missing fields' });
-  }
+        <button onClick={handleSubmit} disabled={!allCorrect} style={{
+          ...styles.button,
+          backgroundColor: allCorrect ? '#28a745' : '#ccc',
+          cursor: allCorrect ? 'pointer' : 'not-allowed',
+        }}>
+          Submit Quiz
+        </button>
 
-  try {
-    const user = await prisma.user.create({
-      data: {
-        firstName,
-        lastName,
-        company: company || null,
-        plant,
-        email,
-        phone,
-        meetingWith: meetingWith || null,
-        trainingCompleted: true,
-      },
-    });
+        {!allCorrect && Object.keys(answers).length === 10 && (
+          <p style={styles.warning}>Some answers are incorrect. Please review and try again.</p>
+        )}
+      </div>
+    </div>
+  );
+};
 
-    // Return certificate data
-    const trainingDate = new Date();
-    const expirationDate = new Date();
-    expirationDate.setFullYear(expirationDate.getFullYear() + 1);
+const styles: { [key: string]: React.CSSProperties } = {
+  container: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    minHeight: '100vh',
+    backgroundColor: '#f4f4f4',
+    padding: '2rem 1rem',
+  },
+  card: {
+    backgroundColor: '#fff',
+    padding: '2rem',
+    borderRadius: 12,
+    boxShadow: '0 0 10px rgba(0,0,0,0.1)',
+    width: '100%',
+    maxWidth: 700,
+  },
+  title: {
+    textAlign: 'center',
+    marginBottom: '0.5rem',
+  },
+  subtitle: {
+    textAlign: 'center',
+    color: '#666',
+    marginBottom: '1.5rem',
+  },
+  questions: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1rem',
+  },
+  question: {
+    padding: '1rem',
+    backgroundColor: '#f9f9f9',
+    borderRadius: 8,
+  },
+  option: {
+    marginRight: '1.5rem',
+    cursor: 'pointer',
+  },
+  button: {
+    padding: '0.75rem',
+    border: 'none',
+    borderRadius: 6,
+    color: '#fff',
+    fontSize: '1rem',
+    fontWeight: 600,
+    marginTop: '1.5rem',
+    width: '100%',
+  },
+  error: {
+    color: 'red',
+    textAlign: 'center',
+    marginTop: '1rem',
+  },
+  warning: {
+    color: '#dc3545',
+    textAlign: 'center',
+    marginTop: '1rem',
+    fontWeight: 500,
+  },
+};
 
-    return res.json({
-      status: 'success',
-      user,
-      certificate: {
-        vNumber: `v-${user.id}`,
-        firstName,
-        lastName,
-        company: company || 'N/A',
-        plant,
-        trainingDate: trainingDate.toLocaleDateString(),
-        expirationDate: expirationDate.toLocaleDateString(),
-        siteContact: meetingWith || 'N/A',
-      },
-    });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// API route to sign out a user
-app.post('/api/sign-out/:id', async (req: Request, res: Response) => {
-  const { id } = req.params;
-
-  try {
-    const user = await prisma.user.update({
-      where: { id: parseInt(id) },
-      data: { signedOutAt: new Date() },
-    });
-
-    return res.json({ status: 'success', user });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// API route to get all users for the admin portal
-app.get('/api/users', async (req: Request, res: Response) => {
-  try {
-    const users = await prisma.user.findMany({
-      orderBy: { createdAt: 'desc' },
-    });
-    res.json(users);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Error fetching users' });
-  }
-});
-
-const port = process.env.PORT || 8080;
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-  console.log(`API available at http://localhost:${port}/api/test`);
-});
+export default Quiz;
