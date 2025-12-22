@@ -8,14 +8,15 @@ datasource db {
 }
 
 model User {
-  id            Int       @id @default(autoincrement())
-  firstName     String
-  lastName      String
-  company       String?
-  plant         String
-  email         String
-  phone         String
-  meetingWith   String?
-  createdAt     DateTime  @default(now())
-  signedOutAt   DateTime?
+  id                Int       @id @default(autoincrement())
+  firstName         String
+  lastName          String
+  company           String?
+  plant             String
+  email             String
+  phone             String
+  meetingWith       String?
+  trainingCompleted Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+  signedOutAt       DateTime?
 }
