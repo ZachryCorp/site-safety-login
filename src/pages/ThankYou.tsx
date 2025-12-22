@@ -6,7 +6,7 @@ import jsPDF from 'jspdf';
 const ThankYou: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const existing = new URLSearchParams(location.search).get('existing') === 'true';
+  const action = new URLSearchParams(location.search).get('action');
   const certificate = location.state?.certificate;
 
   const generatePDF = () => {
@@ -73,22 +73,36 @@ const ThankYou: React.FC = () => {
     doc.save(`certificate-${certificate.firstName}-${certificate.lastName}.pdf`);
   };
 
+  const getTitle = () => {
+    if (action === 'signed-out') {
+      return 'Thank You for Signing Out!';
+    }
+    return 'Thank You!';
+  };
+
+  const getMessage = () => {
+    switch (action) {
+      case 'signed-in':
+        return 'You have successfully signed in.';
+      case 'signed-out':
+        return 'You have successfully signed out. Have a safe trip!';
+      default:
+        return 'You have completed your site safety training.';
+    }
+  };
+
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <h1 style={styles.title}>Thank You!</h1>
-        {existing ? (
-          <p style={styles.message}>You have successfully signed in today.</p>
-        ) : (
-          <>
-            <p style={styles.message}>You have completed your site safety training.</p>
-            {certificate && (
-              <button onClick={generatePDF} style={styles.downloadButton}>
-                Download Certificate (PDF)
-              </button>
-            )}
-          </>
+        <h1 style={styles.title}>{getTitle()}</h1>
+        <p style={styles.message}>{getMessage()}</p>
+        
+        {certificate && (
+          <button onClick={generatePDF} style={styles.downloadButton}>
+            Download Certificate (PDF)
+          </button>
         )}
+        
         <button onClick={() => navigate('/')} style={styles.homeButton}>
           Return to Home
         </button>

@@ -158,23 +158,10 @@ export default function Home() {
     setLoading(false);
   };
 
-  // Continue button - just sign in, no training required
-  const handleContinue = async () => {
+  // Site Specific Training button - always go to video/quiz
+  const handleSiteSpecificTraining = () => {
     if (!validateForm()) return;
-
-    setLoading(true);
-    try {
-      await fetch(`${apiUrl}/api/sign-in`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-      navigate('/thank-you?action=signed-in');
-    } catch (err) {
-      console.error(err);
-      setError('Server error. Please try again later.');
-    }
-    setLoading(false);
+    navigate('/video', { state: formData });
   };
 
   return (
@@ -293,11 +280,11 @@ export default function Home() {
 
           <button
             type="button"
-            onClick={handleContinue}
+            onClick={handleSiteSpecificTraining}
             disabled={loading}
-            style={styles.continueButton}
+            style={styles.trainingButton}
           >
-            {loading ? 'Please wait...' : 'Continue'}
+            {loading ? 'Please wait...' : 'Site Specific Training'}
           </button>
         </form>
 
@@ -360,7 +347,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: 'pointer',
     marginTop: '1rem',
   },
-  continueButton: {
+  trainingButton: {
     padding: '0.75rem',
     border: 'none',
     borderRadius: 6,
