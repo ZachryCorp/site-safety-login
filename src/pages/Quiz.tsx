@@ -6,7 +6,7 @@ const Quiz: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { firstName, lastName, plant, email, phone } = location.state || {};
+  const { firstName, lastName, company, plant, email, phone, meetingWith } = location.state || {};
 
   const [answers, setAnswers] = useState<Record<string, boolean>>({});
   const [error, setError] = useState('');
@@ -34,16 +34,18 @@ const Quiz: React.FC = () => {
 
   const handleSubmit = async () => {
     try {
-      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/submit-quiz`, {
+      const apiUrl = process.env.REACT_APP_API_URL || 'https://site-safety-login-linux-bmg9dff8a9g6ahej.centralus-01.azurewebsites.net';
+      
+      const res = await fetch(`${apiUrl}/api/submit-quiz`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ firstName, lastName, plant, email, phone, score: 100 }),
+        body: JSON.stringify({ firstName, lastName, company, plant, email, phone, meetingWith }),
       });
 
       const data = await res.json();
 
       if (data.status === 'success') {
-        navigate('/thank-you');
+        navigate('/thank-you', { state: { certificate: data.certificate } });
       } else {
         setError('Failed to submit quiz. Please try again.');
       }

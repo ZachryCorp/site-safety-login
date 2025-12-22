@@ -7,7 +7,7 @@ const Video: React.FC = () => {
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const { firstName, lastName, plant, email, phone } = location.state || {};
+  const { firstName, lastName, company, plant, email, phone, meetingWith } = location.state || {};
 
   const [videoCompleted, setVideoCompleted] = useState(false);
 
@@ -30,7 +30,7 @@ const Video: React.FC = () => {
   };
 
   const handleNext = () => {
-    navigate('/quiz', { state: { firstName, lastName, plant, email, phone } });
+    navigate('/quiz', { state: { firstName, lastName, company, plant, email, phone, meetingWith } });
   };
 
   return (
@@ -38,12 +38,12 @@ const Video: React.FC = () => {
       <div style={styles.card}>
         <h2 style={styles.title}>{plant} Site Safety Training</h2>
         <p style={styles.subtitle}>Please watch the entire video before continuing to the quiz.</p>
-        
+
         {videoFilename ? (
-          <video 
+          <video
             ref={videoRef}
-            width="100%" 
-            style={styles.video} 
+            width="100%"
+            style={styles.video}
             controls
             onEnded={handleVideoEnd}
             controlsList="nodownload"
@@ -66,9 +66,9 @@ const Video: React.FC = () => {
             ✓ Video completed! You may now continue to the quiz.
           </p>
         )}
-        
-        <button 
-          onClick={handleNext} 
+
+        <button
+          onClick={handleNext}
           disabled={!videoCompleted}
           style={{
             ...styles.button,
