@@ -14,6 +14,7 @@ export default function Home() {
   });
 
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const plants = ['Cement', 'Delta', 'Hoban', 'Poteet', 'Rio Medina', 'Solms'];
 
@@ -101,21 +102,28 @@ export default function Home() {
     } else {
       setFormData({ ...formData, [name]: value });
     }
+    setError('');
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const validateForm = () => {
     const { firstName, lastName, plant, email, phone, meetingWith } = formData;
-
     if (!firstName || !lastName || !plant || !email || !phone || !meetingWith) {
       setError('All fields are required.');
-      return;
+      return false;
     }
+    return true;
+  };
 
+  const apiUrl =
+    process.env.REACT_APP_API_URL ||
+    'https://site-safety-login-linux-bmg9dff8a9g6ahej.centralus-01.azurewebsites.net';
+
+  // Sign In - for visitors/contractors who need training
+  const handleSignIn = async () => {
+    if (!validateForm()) return;
+
+    setLoading(true);
     try {
-      const apiUrl =
-        process.env.REACT_APP_API_URL ||
-        'https://site-safety-login-linux-bmg9dff8a9g6ahej.centralus-01.azurewebsites.net';
       const res = await fetch(`${apiUrl}/api/check-user`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -125,21 +133,48 @@ export default function Home() {
       const data = await res.json();
 
       if (data.status === 'existing') {
+        // User has completed training - log them in
+        await fetch(`${apiUrl}/api/sign-in`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        });
         navigate('/thank-you?existing=true');
       } else {
+        // User needs training - go to video
         navigate('/video', { state: formData });
       }
     } catch (err) {
       console.error(err);
       setError('Server error. Please try again later.');
     }
+    setLoading(false);
+  };
+
+  // Continue - for employees who don't need training
+  const handleContinue = async () => {
+    if (!validateForm()) return;
+
+    setLoading(true);
+    try {
+      await fetch(`${apiUrl}/api/sign-in`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...formData, isEmployee: true }),
+      });
+      navigate('/thank-you?existing=true');
+    } catch (err) {
+      console.error(err);
+      setError('Server error. Please try again later.');
+    }
+    setLoading(false);
   };
 
   return (
     <div style={styles.container}>
       <div style={styles.card}>
         <h2 style={styles.title}>Site Safety Login</h2>
-        <form onSubmit={handleSubmit} style={styles.form}>
+        <form style={styles.form} onSubmit={(e) => e.preventDefault()}>
           <div style={styles.formGroup}>
             <label style={styles.label}>First Name</label>
             <input
@@ -228,8 +263,22 @@ export default function Home() {
 
           {error && <p style={styles.error}>{error}</p>}
 
-          <button type="submit" style={styles.button}>
-            Continue
+          <button
+            type="button"
+            onClick={handleSignIn}
+            disabled={loading}
+            style={styles.signInButton}
+          >
+            {loading ? 'Please wait...' : 'Sign In (Visitor/Contractor)'}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleContinue}
+            disabled={loading}
+            style={styles.continueButton}
+          >
+            {loading ? 'Please wait...' : 'Continue (Employee)'}
           </button>
         </form>
 
@@ -246,8 +295,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    height: '100vh',
+    minHeight: '100vh',
     backgroundColor: '#f4f4f4',
+    padding: '1rem',
   },
   card: {
     backgroundColor: '#fff',
@@ -280,7 +330,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: '1px solid #ccc',
     fontSize: '1rem',
   },
-  button: {
+  signInButton: {
     padding: '0.75rem',
     border: 'none',
     borderRadius: 6,
@@ -291,11 +341,22 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: 'pointer',
     marginTop: '1rem',
   },
-  adminButton: {
+  continueButton: {
     padding: '0.75rem',
     border: 'none',
     borderRadius: 6,
     backgroundColor: '#28a745',
+    color: '#fff',
+    fontSize: '1rem',
+    fontWeight: 600,
+    cursor: 'pointer',
+    marginTop: '0.5rem',
+  },
+  adminButton: {
+    padding: '0.75rem',
+    border: 'none',
+    borderRadius: 6,
+    backgroundColor: '#6c757d',
     color: '#fff',
     fontSize: '1rem',
     fontWeight: 600,

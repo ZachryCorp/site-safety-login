@@ -40,6 +40,33 @@ app.post('/api/check-user', async (req: Request, res: Response) => {
   }
 });
 
+// API route for signing in (employees or returning visitors)
+app.post('/api/sign-in', async (req: Request, res: Response) => {
+  const { firstName, lastName, plant, email, phone, meetingWith, isEmployee } = req.body;
+
+  if (!firstName || !lastName || !plant || !email || !phone) {
+    return res.status(400).json({ message: 'Missing fields' });
+  }
+
+  try {
+    const user = await prisma.user.create({
+      data: {
+        firstName,
+        lastName,
+        plant,
+        email,
+        phone,
+        meetingWith: meetingWith || null,
+      },
+    });
+
+    return res.json({ status: 'success', user });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // API route to submit quiz and complete training
 app.post('/api/submit-quiz', async (req: Request, res: Response) => {
   const { firstName, lastName, plant, email, phone, meetingWith } = req.body;
