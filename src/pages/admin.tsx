@@ -12,6 +12,7 @@ type User = {
   email: string;
   phone: string;
   meetingWith: string | null;
+  trainingCompleted: boolean;
   createdAt: string;
   signedOutAt: string | null;
 };
@@ -168,7 +169,7 @@ const Admin: React.FC = () => {
                 <th style={styles.th}>Meeting With</th>
                 <th style={styles.th}>Email</th>
                 <th style={styles.th}>Phone</th>
-                <th style={styles.th}>Training Date</th>
+                <th style={styles.th}>Training</th>
                 <th style={styles.th}>Expiration</th>
                 <th style={styles.th}>Sign In Time</th>
                 <th style={styles.th}>Sign Out Time</th>
@@ -185,8 +186,16 @@ const Admin: React.FC = () => {
                   <td style={styles.td}>{u.meetingWith || '-'}</td>
                   <td style={styles.td}>{u.email}</td>
                   <td style={styles.td}>{u.phone}</td>
-                  <td style={styles.td}>{new Date(u.createdAt).toLocaleDateString()}</td>
-                  <td style={styles.td}>{getExpirationDate(u.createdAt)}</td>
+                  <td style={styles.td}>
+                    {u.trainingCompleted ? (
+                      <span style={styles.completedBadge}>✓ Completed</span>
+                    ) : (
+                      <span style={styles.notCompletedBadge}>-</span>
+                    )}
+                  </td>
+                  <td style={styles.td}>
+                    {u.trainingCompleted ? getExpirationDate(u.createdAt) : '-'}
+                  </td>
                   <td style={styles.td}>{new Date(u.createdAt).toLocaleString()}</td>
                   <td style={styles.td}>
                     {u.signedOutAt ? new Date(u.signedOutAt).toLocaleString() : '-'}
@@ -208,12 +217,14 @@ const Admin: React.FC = () => {
                           Sign Out
                         </button>
                       )}
-                      <button
-                        onClick={() => generateCertificate(u)}
-                        style={styles.certButton}
-                      >
-                        Certificate
-                      </button>
+                      {u.trainingCompleted && (
+                        <button
+                          onClick={() => generateCertificate(u)}
+                          style={styles.certButton}
+                        >
+                          Certificate
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -287,6 +298,16 @@ const styles: { [key: string]: React.CSSProperties } = {
   td: {
     padding: '12px 8px',
     whiteSpace: 'nowrap',
+  },
+  completedBadge: {
+    backgroundColor: '#d4edda',
+    color: '#155724',
+    padding: '4px 8px',
+    borderRadius: 4,
+    fontSize: '0.85rem',
+  },
+  notCompletedBadge: {
+    color: '#999',
   },
   onSiteBadge: {
     backgroundColor: '#cce5ff',
