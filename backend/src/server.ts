@@ -22,11 +22,12 @@ app.post('/api/check-user-status', async (req: Request, res: Response) => {
   }
 
   try {
-    // Check if user has ever completed training for this plant
+    // Check if user has completed training for this plant
     const hasTraining = await prisma.user.findFirst({
       where: {
         email,
         plant,
+        trainingCompleted: true,
       },
     });
 
@@ -68,6 +69,7 @@ app.post('/api/check-user', async (req: Request, res: Response) => {
       where: {
         email,
         plant,
+        trainingCompleted: true,
       },
     });
 
@@ -82,9 +84,9 @@ app.post('/api/check-user', async (req: Request, res: Response) => {
   }
 });
 
-// API route for signing in (employees or returning visitors)
+// API route for signing in (no training)
 app.post('/api/sign-in', async (req: Request, res: Response) => {
-  const { firstName, lastName, company, plant, email, phone, meetingWith, isEmployee } = req.body;
+  const { firstName, lastName, company, plant, email, phone, meetingWith } = req.body;
 
   if (!firstName || !lastName || !plant || !email || !phone) {
     return res.status(400).json({ message: 'Missing fields' });
@@ -100,6 +102,7 @@ app.post('/api/sign-in', async (req: Request, res: Response) => {
         email,
         phone,
         meetingWith: meetingWith || null,
+        trainingCompleted: false,
       },
     });
 
@@ -128,6 +131,7 @@ app.post('/api/submit-quiz', async (req: Request, res: Response) => {
         email,
         phone,
         meetingWith: meetingWith || null,
+        trainingCompleted: true,
       },
     });
 

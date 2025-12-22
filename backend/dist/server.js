@@ -21,11 +21,12 @@ app.post('/api/check-user-status', async (req, res) => {
         return res.status(400).json({ message: 'Missing fields' });
     }
     try {
-        // Check if user has ever completed training for this plant
+        // Check if user has completed training for this plant
         const hasTraining = await prisma.user.findFirst({
             where: {
                 email,
                 plant,
+                trainingCompleted: true,
             },
         });
         if (!hasTraining) {
@@ -61,6 +62,7 @@ app.post('/api/check-user', async (req, res) => {
             where: {
                 email,
                 plant,
+                trainingCompleted: true,
             },
         });
         if (existingTraining) {
@@ -75,9 +77,9 @@ app.post('/api/check-user', async (req, res) => {
         return res.status(500).json({ message: 'Server error' });
     }
 });
-// API route for signing in (employees or returning visitors)
+// API route for signing in (no training)
 app.post('/api/sign-in', async (req, res) => {
-    const { firstName, lastName, company, plant, email, phone, meetingWith, isEmployee } = req.body;
+    const { firstName, lastName, company, plant, email, phone, meetingWith } = req.body;
     if (!firstName || !lastName || !plant || !email || !phone) {
         return res.status(400).json({ message: 'Missing fields' });
     }
@@ -91,6 +93,7 @@ app.post('/api/sign-in', async (req, res) => {
                 email,
                 phone,
                 meetingWith: meetingWith || null,
+                trainingCompleted: false,
             },
         });
         return res.json({ status: 'success', user });
@@ -116,6 +119,7 @@ app.post('/api/submit-quiz', async (req, res) => {
                 email,
                 phone,
                 meetingWith: meetingWith || null,
+                trainingCompleted: true,
             },
         });
         // Return certificate data
