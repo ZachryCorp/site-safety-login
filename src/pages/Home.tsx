@@ -7,6 +7,7 @@ export default function Home() {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
+    company: '',
     plant: '',
     email: '',
     phone: '',
@@ -196,6 +197,18 @@ export default function Home() {
               onChange={handleChange}
               style={styles.input}
               required
+            />
+          </div>
+
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Company</label>
+            <input
+              name="company"
+              type="text"
+              value={formData.company}
+              onChange={handleChange}
+              style={styles.input}
+              placeholder="Optional"
             />
           </div>
 

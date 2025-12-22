@@ -42,7 +42,7 @@ app.post('/api/check-user', async (req: Request, res: Response) => {
 
 // API route for signing in (employees or returning visitors)
 app.post('/api/sign-in', async (req: Request, res: Response) => {
-  const { firstName, lastName, plant, email, phone, meetingWith, isEmployee } = req.body;
+  const { firstName, lastName, company, plant, email, phone, meetingWith, isEmployee } = req.body;
 
   if (!firstName || !lastName || !plant || !email || !phone) {
     return res.status(400).json({ message: 'Missing fields' });
@@ -53,6 +53,7 @@ app.post('/api/sign-in', async (req: Request, res: Response) => {
       data: {
         firstName,
         lastName,
+        company: company || null,
         plant,
         email,
         phone,
@@ -69,7 +70,7 @@ app.post('/api/sign-in', async (req: Request, res: Response) => {
 
 // API route to submit quiz and complete training
 app.post('/api/submit-quiz', async (req: Request, res: Response) => {
-  const { firstName, lastName, plant, email, phone, meetingWith } = req.body;
+  const { firstName, lastName, company, plant, email, phone, meetingWith } = req.body;
 
   if (!firstName || !lastName || !plant || !email || !phone) {
     return res.status(400).json({ message: 'Missing fields' });
@@ -80,6 +81,7 @@ app.post('/api/submit-quiz', async (req: Request, res: Response) => {
       data: {
         firstName,
         lastName,
+        company: company || null,
         plant,
         email,
         phone,
@@ -87,7 +89,25 @@ app.post('/api/submit-quiz', async (req: Request, res: Response) => {
       },
     });
 
-    return res.json({ status: 'success', user });
+    // Return certificate data
+    const trainingDate = new Date();
+    const expirationDate = new Date();
+    expirationDate.setFullYear(expirationDate.getFullYear() + 1);
+
+    return res.json({
+      status: 'success',
+      user,
+      certificate: {
+        odNumber: `v-${user.id}`,
+        firstName,
+        lastName,
+        company: company || 'N/A',
+        plant,
+        trainingDate: trainingDate.toLocaleDateString(),
+        expirationDate: expirationDate.toLocaleDateString(),
+        siteContact: meetingWith || 'N/A',
+      },
+    });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: 'Server error' });
