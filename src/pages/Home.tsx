@@ -119,13 +119,16 @@ export default function Home() {
     process.env.REACT_APP_API_URL ||
     'https://site-safety-login-linux-bmg9dff8a9g6ahej.centralus-01.azurewebsites.net';
 
-  // Sign In - for visitors/contractors who need training
-  const handleSignIn = async () => {
+  // Sign In / Sign Out button
+  // - No training → Video/Quiz
+  // - Trained + on site → Sign out
+  // - Trained + not on site → Sign in
+  const handleSignInOut = async () => {
     if (!validateForm()) return;
 
     setLoading(true);
     try {
-      const res = await fetch(`${apiUrl}/api/check-user`, {
+      const res = await fetch(`${apiUrl}/api/check-user-status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -133,17 +136,20 @@ export default function Home() {
 
       const data = await res.json();
 
-      if (data.status === 'existing') {
-        // User has completed training - log them in
+      if (data.status === 'needs-training') {
+        navigate('/video', { state: formData });
+      } else if (data.status === 'on-site') {
+        await fetch(`${apiUrl}/api/sign-out/${data.visitorId}`, {
+          method: 'POST',
+        });
+        navigate('/thank-you?action=signed-out');
+      } else {
         await fetch(`${apiUrl}/api/sign-in`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData),
         });
-        navigate('/thank-you?existing=true');
-      } else {
-        // User needs training - go to video
-        navigate('/video', { state: formData });
+        navigate('/thank-you?action=signed-in');
       }
     } catch (err) {
       console.error(err);
@@ -152,7 +158,7 @@ export default function Home() {
     setLoading(false);
   };
 
-  // Continue - for employees who don't need training
+  // Continue button - just sign in, no training required
   const handleContinue = async () => {
     if (!validateForm()) return;
 
@@ -161,9 +167,9 @@ export default function Home() {
       await fetch(`${apiUrl}/api/sign-in`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, isEmployee: true }),
+        body: JSON.stringify(formData),
       });
-      navigate('/thank-you?existing=true');
+      navigate('/thank-you?action=signed-in');
     } catch (err) {
       console.error(err);
       setError('Server error. Please try again later.');
@@ -278,11 +284,11 @@ export default function Home() {
 
           <button
             type="button"
-            onClick={handleSignIn}
+            onClick={handleSignInOut}
             disabled={loading}
             style={styles.signInButton}
           >
-            {loading ? 'Please wait...' : 'Sign In (Visitor/Contractor)'}
+            {loading ? 'Please wait...' : 'Sign In / Sign Out'}
           </button>
 
           <button
@@ -291,7 +297,7 @@ export default function Home() {
             disabled={loading}
             style={styles.continueButton}
           >
-            {loading ? 'Please wait...' : 'Continue (Employee)'}
+            {loading ? 'Please wait...' : 'Continue'}
           </button>
         </form>
 
