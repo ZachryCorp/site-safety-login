@@ -14,6 +14,32 @@ app.use(express_1.default.json());
 app.get('/api/test', (req, res) => {
     res.json({ message: 'Backend is running', timestamp: new Date().toISOString() });
 });
+// API route to check if user is on site (no training check)
+app.post('/api/check-on-site', async (req, res) => {
+    const { email, plant } = req.body;
+    if (!email || !plant) {
+        return res.status(400).json({ message: 'Missing fields' });
+    }
+    try {
+        // Check if user is currently on site (signed in but not signed out)
+        const onSite = await prisma.user.findFirst({
+            where: {
+                email,
+                plant,
+                signedOutAt: null,
+            },
+            orderBy: { createdAt: 'desc' },
+        });
+        if (onSite) {
+            return res.json({ status: 'on-site', visitorId: onSite.id });
+        }
+        return res.json({ status: 'off-site' });
+    }
+    catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Server error' });
+    }
+});
 // API route to check user status (training + on-site status)
 app.post('/api/check-user-status', async (req, res) => {
     const { email, plant } = req.body;

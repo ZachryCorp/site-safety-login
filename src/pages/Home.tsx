@@ -119,31 +119,31 @@ export default function Home() {
     process.env.REACT_APP_API_URL ||
     'https://site-safety-login-linux-bmg9dff8a9g6ahej.centralus-01.azurewebsites.net';
 
-  // Sign In / Sign Out button
-  // - No training → Video/Quiz
-  // - Trained + on site → Sign out
-  // - Trained + not on site → Sign in
+  // Sign In / Sign Out button - no training required
+  // - On site → Sign out
+  // - Not on site → Sign in
   const handleSignInOut = async () => {
     if (!validateForm()) return;
 
     setLoading(true);
     try {
-      const res = await fetch(`${apiUrl}/api/check-user-status`, {
+      // Check if user is currently on site
+      const res = await fetch(`${apiUrl}/api/check-on-site`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ email: formData.email, plant: formData.plant }),
       });
 
       const data = await res.json();
 
-      if (data.status === 'needs-training') {
-        navigate('/video', { state: formData });
-      } else if (data.status === 'on-site') {
+      if (data.status === 'on-site') {
+        // Sign them out
         await fetch(`${apiUrl}/api/sign-out/${data.visitorId}`, {
           method: 'POST',
         });
         navigate('/thank-you?action=signed-out');
       } else {
+        // Sign them in
         await fetch(`${apiUrl}/api/sign-in`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
