@@ -33,6 +33,7 @@ const staffEmails: { [key: string]: string } = {
   'Richard Jarzombek': 'richard.jarzombek@zachrycorp.com',
   'Erik Kottke': 'erik.kottke@zachrycorp.com',
   'Mario Lira': 'mario.lira@zachrycorp.com',
+  'Patrick McMahan': 'patrick.mcmahan@zachrycorp.com',
   'Zachary McMahon': 'zachary.mcmahon@zachrycorp.com',
   'Raul Molina': 'raul.molina@zachrycorp.com',
   'Ramon Riviera': 'ramon.riviera@zachrycorp.com',
@@ -82,6 +83,7 @@ export async function sendSignInEmail(user: User): Promise<void> {
       <p>Please be aware that your visitor has arrived.</p>
     `,
   };
+
 
   await transporter.sendMail(mailOptions);
 }

@@ -38,7 +38,7 @@ const SignOut: React.FC = () => {
       setMessage('');
     }
   };
-
+  
   return (
     <div style={styles.container}>
       <div style={styles.card}>

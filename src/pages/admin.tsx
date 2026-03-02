@@ -72,8 +72,7 @@ const Admin: React.FC = () => {
     const pageWidth = doc.internal.pageSize.getWidth();
 
     const trainingDate = new Date(user.createdAt);
-    const expirationDate = new Date(user.createdAt);
-    expirationDate.setFullYear(expirationDate.getFullYear() + 1);
+    const expirationDate = new Date(trainingDate.getFullYear(), 11, 31);
 
     // Blue header
     doc.setFillColor(30, 80, 140);
@@ -135,8 +134,7 @@ const Admin: React.FC = () => {
 
   const getExpirationDate = (createdAt: string) => {
     const date = new Date(createdAt);
-    date.setFullYear(date.getFullYear() + 1);
-    return date.toLocaleDateString();
+    return new Date(date.getFullYear(), 11, 31).toLocaleDateString();
   };
 
   return (
@@ -272,6 +270,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   tableWrapper: {
     overflowX: 'auto',
+    transform: 'scaleY(-1)',
   },
   table: {
     width: '100%',
@@ -281,6 +280,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: 8,
     overflow: 'hidden',
     minWidth: '1200px',
+    transform: 'scaleY(-1)',
   },
   headerRow: {
     backgroundColor: '#343a40',

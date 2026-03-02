@@ -167,8 +167,7 @@ app.post('/api/submit-quiz', async (req: Request, res: Response) => {
 
     // Return certificate data
     const trainingDate = new Date();
-    const expirationDate = new Date();
-    expirationDate.setFullYear(expirationDate.getFullYear() + 1);
+    const expirationDate = new Date(trainingDate.getFullYear(), 11, 31);
 
     return res.json({
       status: 'success',
