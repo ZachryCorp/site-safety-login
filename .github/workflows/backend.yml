@@ -40,18 +40,16 @@ jobs:
       - name: Create deployment package
         working-directory: backend
         run: |
-          mkdir -p deploy
-          cp -r dist/* deploy/
+          mkdir -p deploy/dist
+          cp -r dist/* deploy/dist/
           cp package.json package-lock.json deploy/
           cp -r prisma deploy/
-          mkdir -p deploy/node_modules/.prisma
-          cp -r node_modules/.prisma/* deploy/node_modules/.prisma/ || true
 
       - name: Install production dependencies
         working-directory: backend/deploy
         run: |
           npm ci --omit=dev
-          npx prisma generate
+          npx prisma generate --schema=prisma/schema.prisma
 
       - name: Login to Azure
         uses: azure/login@v2

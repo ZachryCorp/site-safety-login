@@ -272,14 +272,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     overflowX: 'scroll',
     overflowY: 'auto',
     maxHeight: 'calc(100vh - 130px)',
+    borderRadius: 8,
+    boxShadow: '0 0 10px rgba(0,0,0,0.1)',
   },
   table: {
     width: '100%',
     borderCollapse: 'collapse',
     backgroundColor: '#fff',
-    boxShadow: '0 0 10px rgba(0,0,0,0.1)',
-    borderRadius: 8,
-    overflow: 'hidden',
     minWidth: '1200px',
   },
   headerRow: {
