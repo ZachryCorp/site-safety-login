@@ -50,7 +50,7 @@ jobs:
       - name: Install production dependencies
         working-directory: backend/deploy
         run: |
-          npm ci --only=production
+          npm ci --omit=dev
           npx prisma generate
 
       - name: Login to Azure
