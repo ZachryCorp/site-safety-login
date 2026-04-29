@@ -270,7 +270,8 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   tableWrapper: {
     overflowX: 'auto',
-    transform: 'scaleY(-1)',
+    overflowY: 'auto',
+    maxHeight: 'calc(100vh - 130px)',
   },
   table: {
     width: '100%',
@@ -280,7 +281,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: 8,
     overflow: 'hidden',
     minWidth: '1200px',
-    transform: 'scaleY(-1)',
   },
   headerRow: {
     backgroundColor: '#343a40',
@@ -291,6 +291,10 @@ const styles: { [key: string]: React.CSSProperties } = {
     textAlign: 'left',
     fontWeight: 600,
     whiteSpace: 'nowrap',
+    position: 'sticky',
+    top: 0,
+    backgroundColor: '#343a40',
+    zIndex: 1,
   },
   row: {
     borderBottom: '1px solid #dee2e6',
