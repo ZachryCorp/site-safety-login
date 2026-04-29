@@ -6,9 +6,11 @@ on:
       - main
     paths:
       - 'backend/**'
+  workflow_dispatch:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   build-and-deploy:
@@ -42,7 +44,6 @@ jobs:
           cp -r dist/* deploy/
           cp package.json package-lock.json deploy/
           cp -r prisma deploy/
-          # Copy generated Prisma client
           mkdir -p deploy/node_modules/.prisma
           cp -r node_modules/.prisma/* deploy/node_modules/.prisma/ || true
 
@@ -52,9 +53,16 @@ jobs:
           npm ci --only=production
           npx prisma generate
 
-      - name: Deploy to Azure App Service
-        uses: azure/webapps-deploy@v2
+      - name: Login to Azure
+        uses: azure/login@v2
         with:
-          app-name: site-safety-login
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_B381DCEF5D9B45F89F4851A72E13056C }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_C03583C766A844EE86D16DE0805E433A }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_5294D2B98F3D4D33A6B2D678ADED4F73 }}
+
+      - name: Deploy to Azure App Service
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: site-safety-login-linux
+          slot-name: 'Production'
           package: backend/deploy
