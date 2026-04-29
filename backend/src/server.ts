@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
+import { startScheduledJobs, autoSignOutPreviousDays } from './scheduledJobs';
 
 const prisma = new PrismaClient();
 const app = express();
@@ -220,7 +221,10 @@ app.get('/api/users', async (req: Request, res: Response) => {
 });
 
 const port = process.env.PORT || 8080;
-app.listen(port, () => {
+app.listen(port, async () => {
   console.log(`Server is running on port ${port}`);
   console.log(`API available at http://localhost:${port}/api/test`);
+
+  await autoSignOutPreviousDays();
+  startScheduledJobs();
 });
