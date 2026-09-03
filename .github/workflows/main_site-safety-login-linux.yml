@@ -3,10 +3,12 @@
 
 name: Build and deploy Node.js app to Azure Web App - site-safety-login-linux
 
+# Disabled: this deploys the root React app to site-safety-login-linux, the same
+# App Service backend.yml deploys the Express API to, so the two raced on every
+# push to main and whichever finished last won. The frontend is deployed by
+# azure-static-web-apps-gentle-dune-0f70ed110.yml, which is where it belongs.
+# Left runnable by hand rather than deleted, in case it is still wanted.
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 jobs:
