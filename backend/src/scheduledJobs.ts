@@ -1,6 +1,6 @@
 import cron from 'node-cron';
 import { PrismaClient } from '@prisma/client';
-import { sendOvertimeNotification } from './emailService';
+import { sendStillOnSiteEmail } from './emailService';
 
 const prisma = new PrismaClient();
 
@@ -43,42 +43,26 @@ export async function autoSignOutPreviousDays() {
 }
 
 export function startScheduledJobs() {
-  // Run every day at 5:30 PM Central Time
-  // Cron expression: '30 17 * * *' = minute 30, hour 17 (5 PM), every day
-  cron.schedule('30 17 * * *', async () => {
-    console.log('Running 5:30 PM overtime check...');
-    
+  // Run every day at 5:00 PM Central Time
+  // Cron expression: '0 17 * * *' = minute 0, hour 17 (5 PM), every day
+  cron.schedule('0 17 * * *', async () => {
+    console.log('Running 5:00 PM still-on-site check...');
+
     try {
       // Get users who are still signed in
       const signedInUsers = await prisma.user.findMany({
         where: { signedOutAt: null },
       });
-      
-      console.log(`Found ${signedInUsers.length} users still signed in at 5:30 PM`);
-      
-      let emailsSent = 0;
-      
+
+      console.log(`Found ${signedInUsers.length} users still signed in at 5:00 PM`);
+
       for (const user of signedInUsers) {
-        try {
-          await sendOvertimeNotification({
-            firstName: user.firstName,
-            lastName: user.lastName,
-            plant: user.plant || '',
-            email: user.email,
-            phone: user.phone,
-            meetingWith: user.meetingWith || undefined,
-            createdAt: user.createdAt,
-          });
-          emailsSent++;
-          console.log(`Overtime notification sent for ${user.firstName} ${user.lastName}`);
-        } catch (emailError) {
-          console.error(`Failed to send overtime notification for ${user.firstName} ${user.lastName}:`, emailError);
-        }
+        await sendStillOnSiteEmail(user);
       }
-      
-      console.log(`Overtime check completed. ${emailsSent} notifications sent.`);
+
+      console.log(`Still-on-site check completed for ${signedInUsers.length} users.`);
     } catch (error) {
-      console.error('Error during scheduled overtime check:', error);
+      console.error('Error during scheduled still-on-site check:', error);
     }
   }, {
     timezone: "America/Chicago" // Central Time
@@ -102,6 +86,6 @@ export function startScheduledJobs() {
     timezone: "America/Chicago" // Central Time
   });
 
-  console.log('Scheduled job for 5:30 PM overtime check started');
+  console.log('Scheduled job for 5:00 PM still-on-site check started');
   console.log('Scheduled job for midnight auto sign-out started');
 }

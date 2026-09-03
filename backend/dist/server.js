@@ -3,9 +3,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+// Load backend/.env for local dev. On Azure the same keys come from App
+// Service application settings, where no .env file exists and this is a no-op.
+require("dotenv/config");
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const client_1 = require("@prisma/client");
+const scheduledJobs_1 = require("./scheduledJobs");
+const emailService_1 = require("./emailService");
 const prisma = new client_1.PrismaClient();
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
@@ -122,6 +127,8 @@ app.post('/api/sign-in', async (req, res) => {
                 trainingCompleted: false,
             },
         });
+        // Fire-and-forget: never rejects, must not delay the kiosk response
+        void (0, emailService_1.sendSignInEmail)(user);
         return res.json({ status: 'success', user });
     }
     catch (err) {
@@ -148,24 +155,22 @@ app.post('/api/submit-quiz', async (req, res) => {
                 trainingCompleted: true,
             },
         });
-        // Return certificate data
+        // Certificate data (emailed PDF and the client-side download both derive from this)
         const trainingDate = new Date();
-        const expirationDate = new Date();
-        expirationDate.setFullYear(expirationDate.getFullYear() + 1);
-        return res.json({
-            status: 'success',
-            user,
-            certificate: {
-                vNumber: `v-${user.id}`,
-                firstName,
-                lastName,
-                company: company || 'N/A',
-                plant,
-                trainingDate: trainingDate.toLocaleDateString(),
-                expirationDate: expirationDate.toLocaleDateString(),
-                siteContact: meetingWith || 'N/A',
-            },
-        });
+        const expirationDate = new Date(trainingDate.getFullYear(), 11, 31);
+        const certificate = {
+            vNumber: `v-${user.id}`,
+            firstName,
+            lastName,
+            company: company || 'N/A',
+            plant,
+            trainingDate: trainingDate.toLocaleDateString(),
+            expirationDate: expirationDate.toLocaleDateString(),
+            siteContact: meetingWith || 'N/A',
+        };
+        // Fire-and-forget: never rejects, must not delay the kiosk response
+        void (0, emailService_1.sendTrainingCompletionEmail)(user, certificate);
+        return res.json({ status: 'success', user, certificate });
     }
     catch (err) {
         console.error(err);
@@ -180,6 +185,8 @@ app.post('/api/sign-out/:id', async (req, res) => {
             where: { id: parseInt(id) },
             data: { signedOutAt: new Date() },
         });
+        // Fire-and-forget: never rejects, must not delay the kiosk response
+        void (0, emailService_1.sendSignOutEmail)(user);
         return res.json({ status: 'success', user });
     }
     catch (err) {
@@ -201,7 +208,12 @@ app.get('/api/users', async (req, res) => {
     }
 });
 const port = process.env.PORT || 8080;
-app.listen(port, () => {
+app.listen(port, async () => {
     console.log(`Server is running on port ${port}`);
     console.log(`API available at http://localhost:${port}/api/test`);
+    if (process.env.GRAPH_CLIENT_ID) {
+        void (0, emailService_1.testEmailConnection)();
+    }
+    await (0, scheduledJobs_1.autoSignOutPreviousDays)();
+    (0, scheduledJobs_1.startScheduledJobs)();
 });

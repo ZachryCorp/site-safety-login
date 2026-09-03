@@ -1,7 +1,17 @@
+// Load backend/.env for local dev. On Azure the same keys come from App
+// Service application settings, where no .env file exists and this is a no-op.
+import 'dotenv/config';
+
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
 import { startScheduledJobs, autoSignOutPreviousDays } from './scheduledJobs';
+import {
+  sendSignInEmail,
+  sendSignOutEmail,
+  sendTrainingCompletionEmail,
+  testEmailConnection,
+} from './emailService';
 
 const prisma = new PrismaClient();
 const app = express();
@@ -137,6 +147,9 @@ app.post('/api/sign-in', async (req: Request, res: Response) => {
       },
     });
 
+    // Fire-and-forget: never rejects, must not delay the kiosk response
+    void sendSignInEmail(user);
+
     return res.json({ status: 'success', user });
   } catch (err) {
     console.error(err);
@@ -166,24 +179,24 @@ app.post('/api/submit-quiz', async (req: Request, res: Response) => {
       },
     });
 
-    // Return certificate data
+    // Certificate data (emailed PDF and the client-side download both derive from this)
     const trainingDate = new Date();
     const expirationDate = new Date(trainingDate.getFullYear(), 11, 31);
+    const certificate = {
+      vNumber: `v-${user.id}`,
+      firstName,
+      lastName,
+      company: company || 'N/A',
+      plant,
+      trainingDate: trainingDate.toLocaleDateString(),
+      expirationDate: expirationDate.toLocaleDateString(),
+      siteContact: meetingWith || 'N/A',
+    };
 
-    return res.json({
-      status: 'success',
-      user,
-      certificate: {
-        vNumber: `v-${user.id}`,
-        firstName,
-        lastName,
-        company: company || 'N/A',
-        plant,
-        trainingDate: trainingDate.toLocaleDateString(),
-        expirationDate: expirationDate.toLocaleDateString(),
-        siteContact: meetingWith || 'N/A',
-      },
-    });
+    // Fire-and-forget: never rejects, must not delay the kiosk response
+    void sendTrainingCompletionEmail(user, certificate);
+
+    return res.json({ status: 'success', user, certificate });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: 'Server error' });
@@ -199,6 +212,9 @@ app.post('/api/sign-out/:id', async (req: Request, res: Response) => {
       where: { id: parseInt(id) },
       data: { signedOutAt: new Date() },
     });
+
+    // Fire-and-forget: never rejects, must not delay the kiosk response
+    void sendSignOutEmail(user);
 
     return res.json({ status: 'success', user });
   } catch (err) {
@@ -224,6 +240,10 @@ const port = process.env.PORT || 8080;
 app.listen(port, async () => {
   console.log(`Server is running on port ${port}`);
   console.log(`API available at http://localhost:${port}/api/test`);
+
+  if (process.env.GRAPH_CLIENT_ID) {
+    void testEmailConnection();
+  }
 
   await autoSignOutPreviousDays();
   startScheduledJobs();
