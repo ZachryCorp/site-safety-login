@@ -155,23 +155,13 @@ export async function sendGraphMail(opts: GraphMailOptions): Promise<void> {
   }
 }
 
-// Verifies the app registration, certificate and mailbox without sending mail.
+// Verifies the app registration and certificate by acquiring a token, without
+// sending mail. No Graph call is made: reading the mailbox profile would need
+// User.Read.All, which the app is deliberately not granted (Mail.Send suffices).
 export async function testGraphConnection(): Promise<boolean> {
   try {
     const sender = getSender();
-    const token = await getAccessToken();
-
-    const response = await fetch(
-      `https://graph.microsoft.com/v1.0/users/${encodeURIComponent(sender)}?$select=mail,userPrincipalName`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-
-    if (!response.ok) {
-      const detail = await response.text().catch(() => '');
-      console.error(`Graph mailbox check failed: ${response.status} ${detail}`);
-      return false;
-    }
-
+    await getAccessToken();
     console.log(`Graph connection successful, sending as ${sender}`);
     return true;
   } catch (error) {
