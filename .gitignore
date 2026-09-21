@@ -22,3 +22,13 @@ backend/node_modules
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# large media - site-specific training videos (400-500 MB each, over GitHub's limit)
+*.mp4
+
+# local env backups (backend/.env.bak holds the DATABASE_URL)
+*.env.bak
+.env.bak
+
+# local source archives
+src.zip

@@ -33,3 +33,13 @@ Thursday Meeting is the plan as of now
 
 
 go through the folder of Bryan's to find the plants and which plants have a specific video needed for each plant
+
+
+add notifications through email for whenever someone signs in, signs out, or takes the safety quiz. add a copy of the certificate if they have just completed it’s
+
+
+add more plants when Adam sends the data
+
+
+Will i need seperate quizzes for each plant or how is that going to work?
+

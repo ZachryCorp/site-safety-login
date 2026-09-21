@@ -19,48 +19,55 @@ import { GraphMailOptions, sendGraphMail, testGraphConnection } from './graphMai
 // two frontend lists disagree on spelling, both variants are mapped to the
 // same address.
 const staffEmails: { [key: string]: string } = {
-  'jacob ackerman': 'jacob.ackerman@zachrycorp.com',
-  'william aiken': 'william.aiken@zachrycorp.com',
+  'jacob ackerman': 'jacob.ackerman@capitolaggregates.com',
+  'william aiken': 'william.aiken@capitolaggregates.com',
   'robert allison': 'robert.allison@zachrycorp.com',
-  'robert alvarado': 'robert.alvarado@zachrycorp.com',
-  'julio avila': 'julio.avila@zachrycorp.com',
-  'benjamin caccamo': 'benjamin.caccamo@zachrycorp.com',
-  'ben caccamo': 'benjamin.caccamo@zachrycorp.com',
-  'michael castillo': 'michael.castillo@zachrycorp.com',
-  'jose cedeno': 'jose.cedeno@zachrycorp.com',
-  'diane christensen': 'diane.christensen@zachrycorp.com',
-  'daniel davis': 'daniel.davis@zachrycorp.com',
-  'james davis': 'james.davis@zachrycorp.com',
-  'elda espinoza': 'elda.espinoza@zachrycorp.com',
-  'jesse gallegos': 'jesse.gallegos@zachrycorp.com',
-  'keith gilson': 'keith.gilson@zachrycorp.com',
-  'jose gonzalez': 'jose.gonzalez@zachrycorp.com',
-  'craig hernandez': 'craig.hernandez@zachrycorp.com',
-  'joseph hernandez': 'joseph.hernandez@zachrycorp.com',
-  'brittney hill': 'brittney.hill@zachrycorp.com',
-  'richard jarzombek': 'richard.jarzombek@zachrycorp.com',
-  'robert kerr': 'robert.kerr@zachrycorp.com',
-  'erik kottke': 'erik.kottke@zachrycorp.com',
-  'eric kottke': 'erik.kottke@zachrycorp.com',
-  'mario lira': 'mario.lira@zachrycorp.com',
-  'patrick mcmahan': 'patrick.mcmahan@zachrycorp.com',
-  'zachary mcmahon': 'zachary.mcmahon@zachrycorp.com',
-  'zach mcmahon': 'zachary.mcmahon@zachrycorp.com',
-  'alexis navarro': 'alexis.navarro@zachrycorp.com',
-  'jimmy rabon': 'jimmy.rabon@zachrycorp.com',
-  'ramon riviera': 'ramon.riviera@zachrycorp.com',
-  'ramon rivera': 'ramon.riviera@zachrycorp.com',
-  'victor saucedo': 'victor.saucedo@zachrycorp.com',
-  'jason stehle': 'jason.stehle@zachrycorp.com',
-  'jagger tieman': 'jagger.tieman@zachrycorp.com',
-  'jagger tiemann': 'jagger.tieman@zachrycorp.com',
-  'arnie tovar': 'arnie.tovar@zachrycorp.com',
-  'violeta vega-gomez': 'violeta.vega-gomez@zachrycorp.com',
-  'tony ward': 'tony.ward@zachrycorp.com',
-  'mike watson': 'mike.watson@zachrycorp.com',
-  'hernan williams': 'hernan.williams@zachrycorp.com',
-  'scott wolston': 'scott.wolston@zachrycorp.com',
-  'adam ybarra': 'adam.ybarra@zachrycorp.com',
+  'robert alvarado': 'robert.alvarado@capitolaggregates.com',
+  'julio avila': 'julio.avila@capitolaggregates.com',
+  'benjamin caccamo': 'benjamin.caccamo@capitolaggregates.com',
+  'ben caccamo': 'benjamin.caccamo@capitolaggregates.com',
+  'michael castillo': 'michael.castillo@capitolaggregates.com',
+  'jose cedeno': 'jose.cedeno@capitolaggregates.com',
+  'diane christensen': 'diane.christensen@capitolaggregates.com',
+  'daniel davis': 'daniel.davis@capitolaggregates.com',
+  'james davis': 'james.davis@capitolaggregates.com',
+  'elda espinoza': 'elda.espinoza@capitolaggregates.com',
+  'jesse gallegos': 'jesse.gallegos@capitolaggregates.com',
+  'keith gilson': 'keith.gilson@capitolaggregates.com',
+  'jose gonzalez': 'jose.gonzalez@capitolaggregates.com',
+  'craig hernandez': 'craig.hernandez@capitolaggregates.com',
+  'joseph hernandez': 'joseph.hernandez@capitolaggregates.com',
+  'brittney hill': 'brittney.hill@capitolaggregates.com',
+  'richard jarzombek': 'richard.jarzombek@capitolaggregates.com',
+  'robert kerr': 'robert.kerr@capitolaggregates.com',
+  // Directory has him as Eric, not Erik.
+  'erik kottke': 'eric.kottke@capitolaggregates.com',
+  'eric kottke': 'eric.kottke@capitolaggregates.com',
+  'mario lira': 'mario.lira@capitolaggregates.com',
+  'patrick mcmahan': 'patrick.mcmahan@capitolaggregates.com',
+  'zachary mcmahon': 'zachary.mcmahon@capitolaggregates.com',
+  'zach mcmahon': 'zachary.mcmahon@capitolaggregates.com',
+  'alexis navarro': 'alexis.navarro@capitolaggregates.com',
+  'jimmy rabon': 'jimmy.rabon@capitolaggregates.com',
+  // Directory spells the surname Rivera, with one i.
+  'ramon riviera': 'ramon.rivera@capitolaggregates.com',
+  'ramon rivera': 'ramon.rivera@capitolaggregates.com',
+  'victor saucedo': 'victor.saucedo@capitolaggregates.com',
+  'jason stehle': 'jason.stehle@capitolaggregates.com',
+  // Directory spells the surname Tiemann, with two n's.
+  'jagger tieman': 'jagger.tiemann@capitolaggregates.com',
+  'jagger tiemann': 'jagger.tiemann@capitolaggregates.com',
+  // Directory has him as Arnulfo.
+  'arnie tovar': 'arnulfo.tovar@capitolaggregates.com',
+  // Directory has her as Violeta Vega, without the Gomez.
+  'violeta vega-gomez': 'violeta.vega@capitolaggregates.com',
+  'violeta vega': 'violeta.vega@capitolaggregates.com',
+  'tony ward': 'tony.ward@capitolaggregates.com',
+  // TODO: no Mike Watson in the directory - the address below is a guess.
+  'mike watson': 'mike.watson@capitolaggregates.com',
+  'hernan williams': 'hernan.williams@capitolaggregates.com',
+  'scott wolston': 'scott.wolston@capitolaggregates.com',
+  'adam ybarra': 'adam.ybarra@capitolaggregates.com',
 };
 
 // Matches the Prisma User row shape, so DB rows can be passed straight in.
@@ -91,10 +98,14 @@ export function resolveStaffEmail(meetingWith: string | null | undefined): strin
     return staffEmails[key];
   }
 
-  // Fallback for staff not yet in the map: derive first.last@zachrycorp.com
+  // Fallback for staff not yet in the map: derive first.last@capitolaggregates.com.
+  // Nearly all site staff are Capitol Aggregates mailboxes; only a handful of
+  // corporate staff (e.g. Robert Allison) are @zachrycorp.com, and those are
+  // listed above. A guess here can still bounce if the directory uses a legal
+  // first name (Arnulfo, not Arnie) or a different surname spelling.
   const parts = key.split(' ');
   if (parts.length >= 2) {
-    return `${parts[0]}.${parts[parts.length - 1]}@zachrycorp.com`;
+    return `${parts[0]}.${parts[parts.length - 1]}@capitolaggregates.com`;
   }
 
   console.warn(`Could not resolve staff email for meetingWith="${meetingWith}"`);
