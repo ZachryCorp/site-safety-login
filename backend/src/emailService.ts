@@ -94,7 +94,10 @@ export function resolveStaffEmail(meetingWith: string | null | undefined): strin
   }
 
   const key = normalizeName(meetingWith);
-  if (staffEmails[key]) {
+  // hasOwnProperty, not a bare lookup: meetingWith comes off the request body,
+  // and keys like "constructor" or "toString" would otherwise resolve to an
+  // inherited Object.prototype member and be returned as if it were an address.
+  if (Object.prototype.hasOwnProperty.call(staffEmails, key)) {
     return staffEmails[key];
   }
 
@@ -116,6 +119,19 @@ function formatCentral(date: Date): string {
   return date.toLocaleString('en-US', { timeZone: 'America/Chicago' });
 }
 
+// Row values are visitor-supplied (name, company, email, phone typed at the
+// kiosk), so they are escaped before going into the HTML body. Without this an
+// ampersand or angle bracket in a company name mangles the table, and a
+// visitor could inject arbitrary markup into mail sent to staff.
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function renderEmailHtml(
   headerColor: string,
   title: string,
@@ -127,8 +143,8 @@ function renderEmailHtml(
     .map(
       ([label, value]) => `
                 <tr>
-                  <td style="padding: 12px; border-bottom: 1px solid #dee2e6; font-weight: bold; width: 40%; background-color: #f8f9fa;">${label}</td>
-                  <td style="padding: 12px; border-bottom: 1px solid #dee2e6;">${value}</td>
+                  <td style="padding: 12px; border-bottom: 1px solid #dee2e6; font-weight: bold; width: 40%; background-color: #f8f9fa;">${escapeHtml(label)}</td>
+                  <td style="padding: 12px; border-bottom: 1px solid #dee2e6;">${escapeHtml(value)}</td>
                 </tr>`
     )
     .join('');
@@ -193,7 +209,7 @@ export async function sendSignInEmail(v: VisitorInfo): Promise<void> {
         [
           ['Visitor Name', `${v.firstName} ${v.lastName}`],
           ['Company', v.company || 'N/A'],
-          ['Plant', v.plant ?? ''],
+          ['Plant', v.plant || 'N/A'],
           ['Email', v.email],
           ['Phone', v.phone],
           ['Sign-in Time', formatCentral(v.createdAt)],
@@ -224,7 +240,7 @@ export async function sendSignOutEmail(v: VisitorInfo): Promise<void> {
         'Your visitor has signed out',
         [
           ['Visitor Name', `${v.firstName} ${v.lastName}`],
-          ['Plant', v.plant ?? ''],
+          ['Plant', v.plant || 'N/A'],
           ['Sign-in Time', formatCentral(v.createdAt)],
           ['Sign-out Time', formatCentral(v.signedOutAt ?? new Date())],
         ]
@@ -251,7 +267,7 @@ export async function sendStillOnSiteEmail(v: VisitorInfo): Promise<void> {
         'Your visitor is still on-site past 5:00 PM Central',
         [
           ['Visitor Name', `${v.firstName} ${v.lastName}`],
-          ['Plant', v.plant ?? ''],
+          ['Plant', v.plant || 'N/A'],
           ['Email', v.email],
           ['Phone', v.phone],
           ['Sign-in Time', formatCentral(v.createdAt)],

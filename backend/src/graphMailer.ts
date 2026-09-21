@@ -42,8 +42,10 @@ function loadPrivateKey(): string {
   if (inline && inline.trim()) {
     const trimmed = inline.trim();
     if (trimmed.includes('-----BEGIN')) {
-      // App Service strips real newlines from settings; accept the \n-escaped form too.
-      return trimmed.replace(/\n/g, '\n');
+      // App Service settings cannot hold real newlines, so a PEM pasted there
+      // usually arrives with literal backslash-n sequences. Convert those to
+      // real newlines; a PEM that already has real newlines is unaffected.
+      return trimmed.replace(/\\n/g, '\n');
     }
     return Buffer.from(trimmed, 'base64').toString('utf8');
   }

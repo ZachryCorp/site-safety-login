@@ -16,6 +16,21 @@ import {
 const prisma = new PrismaClient();
 const app = express();
 
+// Certificate dates must read in Central Time. Azure App Service runs the
+// process in UTC, so a plain toLocaleDateString() would stamp tomorrow's date
+// on any training finished after 7:00 PM Central (6:00 PM under CST) - and on
+// December 31 it would also push the expiration into the wrong year.
+function formatCentralDate(date: Date): string {
+  return date.toLocaleDateString('en-US', { timeZone: 'America/Chicago' });
+}
+
+function centralYear(date: Date): number {
+  return parseInt(
+    date.toLocaleDateString('en-US', { timeZone: 'America/Chicago', year: 'numeric' }),
+    10
+  );
+}
+
 app.use(cors());
 app.use(express.json());
 
@@ -180,16 +195,15 @@ app.post('/api/submit-quiz', async (req: Request, res: Response) => {
     });
 
     // Certificate data (emailed PDF and the client-side download both derive from this)
-    const trainingDate = new Date();
-    const expirationDate = new Date(trainingDate.getFullYear(), 11, 31);
+    const now = new Date();
     const certificate = {
       vNumber: `v-${user.id}`,
       firstName,
       lastName,
       company: company || 'N/A',
       plant,
-      trainingDate: trainingDate.toLocaleDateString(),
-      expirationDate: expirationDate.toLocaleDateString(),
+      trainingDate: formatCentralDate(now),
+      expirationDate: `12/31/${centralYear(now)}`,
       siteContact: meetingWith || 'N/A',
     };
 
