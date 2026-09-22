@@ -59,6 +59,7 @@ const staffEmails: { [key: string]: string } = {
   'jagger tiemann': 'jagger.tiemann@capitolaggregates.com',
   // Directory has him as Arnulfo.
   'arnie tovar': 'arnulfo.tovar@capitolaggregates.com',
+  'arnulfo tovar': 'arnulfo.tovar@capitolaggregates.com',
   // Directory has her as Violeta Vega, without the Gomez.
   'violeta vega-gomez': 'violeta.vega@capitolaggregates.com',
   'violeta vega': 'violeta.vega@capitolaggregates.com',
@@ -68,6 +69,26 @@ const staffEmails: { [key: string]: string } = {
   'hernan williams': 'hernan.williams@capitolaggregates.com',
   'scott wolston': 'scott.wolston@capitolaggregates.com',
   'adam ybarra': 'adam.ybarra@capitolaggregates.com',
+  // Aggregates site contacts (Solms, Rio Medina, Poteet, Hoban, Delta).
+  'jose torres': 'jose.torres@capitolaggregates.com',
+  'arnulfo rodriguez': 'arnulfo.rodriguez@capitolaggregates.com',
+  'arnold villarreal': 'arnold.villarreal@capitolaggregates.com',
+  'shane mullenix': 'shane.mullenix@capitolaggregates.com',
+  'joey klar': 'joey.klar@capitolaggregates.com',
+  'joshua alvarado': 'joshua.alvarado@capitolaggregates.com',
+  'jonathen johnson': 'jonathen.johnson@capitolaggregates.com',
+  'lee crisp': 'lee.crisp@capitolaggregates.com',
+  'bobby williams': 'bobby.williams@capitolaggregates.com',
+  'bobby rankin': 'bobby.rankin@capitolaggregates.com',
+  'jason ratlif': 'jason.ratlif@capitolaggregates.com',
+  'pedro pulido': 'pedro.pulido@capitolaggregates.com',
+  'mark lopez': 'mark.lopez@capitolaggregates.com',
+  'scotty gerbes': 'scotty.gerbes@capitolaggregates.com',
+  'lee scheel': 'lee.scheel@capitolaggregates.com',
+  'margarito briones': 'margarito.briones@capitolaggregates.com',
+  'brian young': 'brian.young@capitolaggregates.com',
+  'ronnie chapa': 'ronnie.chapa@capitolaggregates.com',
+  'john wedgworth': 'john.wedgworth@capitolaggregates.com',
 };
 
 // Matches the Prisma User row shape, so DB rows can be passed straight in.

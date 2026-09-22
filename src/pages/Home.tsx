@@ -49,52 +49,61 @@ export default function Home() {
   'Victor Saucedo - Maintenance Engineer',
   'Jason Stehle - Heavy Equipment Supervisor',
   'Jagger Tiemann - Engineer Tech',
-  'Arnie Tovar - Electrical Manager',
-  'Violeta Vega-Gomez - Quality Control Manager',
+  'Arnulfo Tovar - Electrical Manager',
+  'Violeta Vega - Quality Control Manager',
   'Tony Ward - Shift Supervisor',
   'Hernan Williams - Automation Engineer',
   'Scott Wolston - Director Distribution',
+  'Robert Allison - Lead Developer',
 ];
 
-  const allPlantsMeetingOptions = [
-  'Adam Ybarra',
-  'Jacob Ackerman',
-  'William Aiken',
-  'Robert Allison',
-  'Robert Alvarado',
-  'Julio Avila',
-  'Benjamin Caccamo',
-  'Michael Castillo',
-  'Jose Cedeno',
-  'Diane Christensen',
-  'Daniel Davis',
-  'James Davis',
-  'Elda Espinoza',
-  'Jesse Gallegos',
-  'Keith Gilson',
-  'Jose Gonzalez',
-  'Craig Hernandez',
-  'Joseph Hernandez',
-  'Richard Jarzombek',
-  'Robert Kerr',
-  'Erik Kottke',
-  'Mario Lira',
-  'Patrick McMahan',
-  'Zachary McMahon',
-  'Jimmy Rabon',
-  'Ramon Riviera',
-  'Jason Stehle',
-  'Jagger Tieman',
-  'Arnie Tovar',
-  'Violeta Vega-Gomez',
-  'Tony Ward',
-  'Mike Watson',
-  'Hernan Williams',
-  'Scott Wolston',
+  // Contacts shared by every aggregates site.
+  const aggregatesLeadership = [
+  'Scotty Gerbes - VP of Aggregates',
+  'Lee Scheel - Director of Aggregates',
+  'Jacob Ackerman - Safety Manager',
+  'Margarito Briones - Safety Trainer',
+  'Brian Young - Heavy Equipment Manager',
+  'Ronnie Chapa - Electrician Supervisor',
+  'John Wedgworth - Sr. Quality Control Manager',
+  'Robert Allison - Lead Developer',
 ];
+
+  // Contacts per aggregates plant: that site's own staff, then the shared list.
+  const siteMeetingOptions: { [plant: string]: string[] } = {
+    'Solms': [
+      'Jose Torres - Plant Manager',
+      'Arnulfo Rodriguez - Plant Foreman',
+      'Arnold Villarreal - Plant Lead',
+      'Shane Mullenix - Project Manager',
+      ...aggregatesLeadership,
+    ],
+    'Rio Medina': [
+      'Joey Klar - Plant Manager',
+      'Joshua Alvarado - Plant Foreman',
+      ...aggregatesLeadership,
+    ],
+    'Poteet': [
+      'Joey Klar - Plant Manager',
+      'Jonathen Johnson - Plant Lead',
+      ...aggregatesLeadership,
+    ],
+    'Hoban': [
+      'Lee Crisp - Plant Manager',
+      'Bobby Williams - Assistant Plant Manager',
+      ...aggregatesLeadership,
+    ],
+    'Delta': [
+      'Bobby Rankin - Plant Manager',
+      'Jason Ratlif - Assistant Plant Manager',
+      ...aggregatesLeadership,
+    ],
+  };
 
   const getMeetingOptions = () => {
-    return formData.plant === 'Cement' ? cementMeetingOptions : allPlantsMeetingOptions;
+    return formData.plant === 'Cement'
+      ? cementMeetingOptions
+      : siteMeetingOptions[formData.plant] || [];
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
