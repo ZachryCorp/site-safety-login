@@ -18,6 +18,7 @@ const Video: React.FC = () => {
     'Hoban': 'Hoban SIte Specific Hazard Training Video 2019.mp4',
     'Poteet': 'Poteet Site Specific.mp4',
     'Rio Medina': 'Rio Medina Site Specific 6.-8-2019.mp4',
+    'San Pablo Sand & Gravel': 'site specific - Cement.mp4', // placeholder until San Pablo has its own video
     'Solms': 'Solms Site Specific(2).mp4',
   };
 

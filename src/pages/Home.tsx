@@ -17,7 +17,7 @@ export default function Home() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const plants = ['Cement', 'Delta', 'Hoban', 'Poteet', 'Rio Medina', 'Solms'];
+  const plants = ['Cement', 'Delta', 'Hoban', 'Poteet', 'Rio Medina', 'San Pablo Sand & Gravel', 'Solms'];
 
   const cementMeetingOptions = [
   'Brittney Hill - Jr. Process Engineer',
@@ -96,6 +96,11 @@ export default function Home() {
     'Delta': [
       'Bobby Rankin - Plant Manager',
       'Jason Ratlif - Assistant Plant Manager',
+      ...aggregatesLeadership,
+    ],
+    'San Pablo Sand & Gravel': [
+      'Pedro Pulido - Plant Manager',
+      'Mark Lopez - Plant Lead',
       ...aggregatesLeadership,
     ],
   };
