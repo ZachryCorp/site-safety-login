@@ -29,6 +29,9 @@ const staffEmails: { [key: string]: string } = {
   'michael castillo': 'michael.castillo@capitolaggregates.com',
   'jose cedeno': 'jose.cedeno@capitolaggregates.com',
   'diane christensen': 'diane.christensen@capitolaggregates.com',
+  // Directory has him as Douglas.
+  'doug conroy': 'douglas.conroy@capitolaggregates.com',
+  'douglas conroy': 'douglas.conroy@capitolaggregates.com',
   'daniel davis': 'daniel.davis@capitolaggregates.com',
   'james davis': 'james.davis@capitolaggregates.com',
   'elda espinoza': 'elda.espinoza@capitolaggregates.com',

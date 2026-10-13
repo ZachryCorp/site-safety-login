@@ -30,6 +30,7 @@ export default function Home() {
   'Michael Castillo - Warehouse Supervisor',
   'Jose Cedeno - Reliability Engineer',
   'Diane Christensen - Procurement Manager',
+  'Doug Conroy - Director of Technical Services',
   'Daniel Davis - Shift Supervisor',
   'James Davis - Electrical Supervisor',
   'Elda Espinoza - Environmental Director',
