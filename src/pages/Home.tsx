@@ -70,7 +70,8 @@ export default function Home() {
   'Robert Allison - Lead Developer',
 ];
 
-  // Contacts per aggregates plant: that site's own staff, then the shared list.
+  // Contacts per aggregates plant: that site's own staff plus the shared list.
+  // Display order is alphabetical by last name (see getMeetingOptions).
   const siteMeetingOptions: { [plant: string]: string[] } = {
     'Solms': [
       'Jose Torres - Plant Manager',
@@ -106,10 +107,18 @@ export default function Home() {
     ],
   };
 
+  // 'Eric Kottke - Production Manager' -> 'kottke eric', so the dropdown sorts
+  // by last name, then first name.
+  const sortKey = (person: string) => {
+    const nameParts = person.split(' - ')[0].trim().toLowerCase().split(/\s+/);
+    return [nameParts[nameParts.length - 1], ...nameParts.slice(0, -1)].join(' ');
+  };
+
   const getMeetingOptions = () => {
-    return formData.plant === 'Cement'
+    const options = formData.plant === 'Cement'
       ? cementMeetingOptions
       : siteMeetingOptions[formData.plant] || [];
+    return [...options].sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
